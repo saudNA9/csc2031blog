@@ -21,11 +21,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 metadata = MetaData(
     naming_convention={
-    "ix": 'ix_%(column_0_label)s',
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
+        "ix": 'ix_%(column_0_label)s',
+        "uq": "uq_%(table_name)s_%(column_0_name)s",
+        "ck": "ck_%(table_name)s_%(constraint_name)s",
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+        "pk": "pk_%(table_name)s"
     }
 )
 
@@ -46,6 +46,12 @@ class Post(db.Model):
        self.title = title
        self.body = body
 
+   def update(self, title, body):
+       self.created = datetime.now()  # Update created time
+       self.title = title  # Update title
+       self.body = body  # Update body
+       db.session.commit()  # Commit changes to the database
+
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
     def get_url(self):
@@ -61,6 +67,7 @@ admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
 admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
+
 # IMPORT BLUEPRINTS at the bottom
 from accounts.views import accounts_bp
 from posts.views import posts_bp
