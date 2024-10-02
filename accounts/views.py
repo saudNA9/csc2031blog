@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, flash, redirect, url_for
-from accounts.forms import RegistrationForm
+from accounts.forms import RegistrationForm, LoginForm
 from config import User, db
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
@@ -29,9 +29,27 @@ def registration():
         return redirect(url_for('accounts.login'))
 
     return render_template('accounts/registration.html', form=form)
-@accounts_bp.route('/login')
+
+
+@accounts_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('accounts/login.html')
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        # Query for user by email
+        user = User.query.filter_by(email=form.email.data).first()
+
+        # Check if the user exists and the password is correct
+        if not user or not user.verify_password(form.password.data):
+            flash('Invalid email or password', 'danger')
+            return redirect(url_for('accounts.login'))
+
+        # If login is successful
+        flash('Login successful', 'success')
+        return redirect(url_for('posts.posts'))  # Assuming 'posts.posts' is the page to view posts
+
+    return render_template('accounts/login.html', form=form)
+
 
 @accounts_bp.route('/account')
 def account():

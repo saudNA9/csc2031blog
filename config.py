@@ -77,6 +77,13 @@ class User(db.Model):
         self.lastname = lastname
         self.phone = phone
         self.password = password
+
+    def verify_password(self, password):
+        """
+        Verifies if the provided password matches the stored password.
+        """
+        return self.password == password  # Simple password comparison (not hashed)
+
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
     def get_url(self):
@@ -86,12 +93,18 @@ class MainIndexLink(MenuLink):
 class PostView(ModelView):
     column_display_pk = True
     column_hide_backrefs = False
-    column_list = ('id', 'created', 'title', 'body')
+    column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
+
+class UserView(ModelView):
+    column_display_pk = True
+    column_hide_backrefs = False
+    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts')
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
 admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
+admin.add_view(UserView(User, db.session))
 
 # IMPORT BLUEPRINTS at the bottom
 from accounts.views import accounts_bp
