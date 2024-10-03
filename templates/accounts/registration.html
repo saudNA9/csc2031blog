@@ -31,30 +31,45 @@
                             <div class="form-group">
                                 {{ form.email.label }}<span style="color: red">*</span>
                                 {{ form.email(class="form-control") }}
+                                {% for error in form.email.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
                             </div>
 
                             <!-- Firstname Field -->
                             <div class="form-group">
                                 {{ form.firstname.label }}<span style="color: red">*</span>
                                 {{ form.firstname(class="form-control") }}
+                                {% for error in form.firstname.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
                             </div>
 
                             <!-- Lastname Field -->
                             <div class="form-group">
                                 {{ form.lastname.label }}<span style="color: red">*</span>
                                 {{ form.lastname(class="form-control") }}
+                                {% for error in form.lastname.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
                             </div>
 
                             <!-- Phone Field -->
                             <div class="form-group">
                                 {{ form.phone.label }}<span style="color: red">*</span>
                                 {{ form.phone(class="form-control") }}
+                                {% for error in form.phone.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
                             </div>
 
-                            <!-- Password Field -->
+                            <!-- Password Field with Error Handling -->
                             <div class="form-group">
                                 {{ form.password.label }}<span style="color: red">*</span>
                                 {{ form.password(class="form-control") }}
+                                {% for error in form.password.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
                             </div>
 
                             <!-- Confirm Password Field with Error Handling -->
