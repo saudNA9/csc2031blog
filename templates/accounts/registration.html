@@ -63,10 +63,17 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Password Field with Error Handling -->
+                            <!-- Password Field with Live Feedback -->
                             <div class="form-group">
                                 {{ form.password.label }}<span style="color: red">*</span>
-                                {{ form.password(class="form-control") }}
+                                {{ form.password(class="form-control", id="password", oninput="checkPasswordStrength()") }}
+                                <ul id="password-requirements" class="mt-2">
+                                    <li id="length-requirement" class="text-danger">Password must be between 8 and 15 characters</li>
+                                    <li id="uppercase-requirement" class="text-danger">Contain at least 1 uppercase letter</li>
+                                    <li id="lowercase-requirement" class="text-danger">Contain at least 1 lowercase letter</li>
+                                    <li id="digit-requirement" class="text-danger">Contain at least 1 digit</li>
+                                    <li id="specialchar-requirement" class="text-danger">Contain at least 1 special character</li>
+                                </ul>
                                 {% for error in form.password.errors %}
                                     <small class="text-danger">{{ error }}</small>
                                 {% endfor %}
@@ -94,4 +101,61 @@
         </div>
 
     </div>
+
+    <!-- JavaScript for Password Strength Feedback -->
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById("password").value;
+            const lengthRequirement = document.getElementById("length-requirement");
+            const upperCaseRequirement = document.getElementById("uppercase-requirement");
+            const lowerCaseRequirement = document.getElementById("lowercase-requirement");
+            const digitRequirement = document.getElementById("digit-requirement");
+            const specialCharRequirement = document.getElementById("specialchar-requirement");
+
+            // Password length between 8 and 15 characters
+            if (password.length >= 8 && password.length <= 15) {
+                lengthRequirement.classList.add("text-success");
+                lengthRequirement.classList.remove("text-danger");
+            } else {
+                lengthRequirement.classList.add("text-danger");
+                lengthRequirement.classList.remove("text-success");
+            }
+
+            // Check for uppercase letter
+            if (/[A-Z]/.test(password)) {
+                upperCaseRequirement.classList.add("text-success");
+                upperCaseRequirement.classList.remove("text-danger");
+            } else {
+                upperCaseRequirement.classList.add("text-danger");
+                upperCaseRequirement.classList.remove("text-success");
+            }
+
+            // Check for lowercase letter
+            if (/[a-z]/.test(password)) {
+                lowerCaseRequirement.classList.add("text-success");
+                lowerCaseRequirement.classList.remove("text-danger");
+            } else {
+                lowerCaseRequirement.classList.add("text-danger");
+                lowerCaseRequirement.classList.remove("text-success");
+            }
+
+            // Check for digits
+            if (/\d/.test(password)) {
+                digitRequirement.classList.add("text-success");
+                digitRequirement.classList.remove("text-danger");
+            } else {
+                digitRequirement.classList.add("text-danger");
+                digitRequirement.classList.remove("text-success");
+            }
+
+            // Check for special character
+            if (/[^\w\s]/.test(password)) {
+                specialCharRequirement.classList.add("text-success");
+                specialCharRequirement.classList.remove("text-danger");
+            } else {
+                specialCharRequirement.classList.add("text-danger");
+                specialCharRequirement.classList.remove("text-success");
+            }
+        }
+    </script>
 {% endblock %}

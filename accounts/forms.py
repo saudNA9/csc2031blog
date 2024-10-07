@@ -3,7 +3,6 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError
 import re
 
-
 # Custom password validator to enforce password strength rules
 def strong_password(form, field):
     password = field.data
@@ -22,7 +21,6 @@ def strong_password(form, field):
     if errors:
         raise ValidationError(', '.join(errors))
 
-
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     firstname = StringField('First Name', validators=[DataRequired()])
@@ -36,7 +34,6 @@ class RegistrationForm(FlaskForm):
                                      validators=[DataRequired(),
                                                  EqualTo('password', message='Both password fields must be equal!')])
     submit = SubmitField('Register')
-
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
