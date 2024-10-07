@@ -33,6 +33,11 @@
                             {{ form.password(class="form-control") }}
                         </div>
 
+                        <!-- reCAPTCHA Field -->
+                        <div class="form-group">
+                            {{ form.recaptcha() }}  <!-- Render the reCAPTCHA -->
+                        </div>
+
                         <div>
                             {{ form.submit(class="btn btn-success") }}
                         </div>
