@@ -6,6 +6,9 @@
     <div class="p-2 row">
         <div class="col-3"></div>
         <div class="col-6">
+
+            {% if not is_locked %}
+            <!-- Show form if account is not locked -->
             <form method="POST">
                 <div class="p-2 bg-light border border-primary">
                     <div style="text-align: left">
@@ -44,6 +47,14 @@
                     </div>
                 </div>
             </form>
+            {% else %}
+            <!-- Show unlock message if account is locked -->
+            <div class="alert alert-danger">
+                Your account is locked due to too many invalid login attempts.
+                <a href="{{ url_for('accounts.unlock_account') }}">Click here to unlock your account</a>.
+            </div>
+            {% endif %}
+
         </div>
         <div class="col-3"></div>
     </div>
