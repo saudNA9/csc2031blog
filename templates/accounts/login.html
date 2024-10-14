@@ -51,7 +51,9 @@
             <!-- Show unlock message if account is locked -->
             <div class="alert alert-danger">
                 Your account is locked due to too many invalid login attempts.
-                <a href="{{ url_for('accounts.unlock_account') }}">Click here to unlock your account</a>.
+                <form method="GET" action="{{ url_for('accounts.unlock_account') }}">
+                    <button type="submit" class="btn btn-success">Unlock</button>
+                </form>
             </div>
             {% endif %}
 
