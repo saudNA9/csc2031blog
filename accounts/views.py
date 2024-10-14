@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for
 from accounts.forms import RegistrationForm, LoginForm
 from config import User, db
 from flask import session
+from config import limiter
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 
@@ -31,8 +32,10 @@ def registration():
 
     return render_template('accounts/registration.html', form=form)
 
+# Apply a rate limit of 3 per minute for testing (or adjust to 20 per minute later)
 
 @accounts_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("20 per minute")
 def login():
     form = LoginForm()
 

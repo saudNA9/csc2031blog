@@ -8,6 +8,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import MetaData
 from datetime import datetime
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 
@@ -110,6 +112,12 @@ admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
 admin.add_view(UserView(User, db.session))
 
+# Application-wide rate limiter with a default limit of 500 function calls per day
+limiter = Limiter(
+    key_func=get_remote_address,  # Get the client's IP address
+    app=app,
+    default_limits=["500 per day"]  # Default rate limit
+)
 # IMPORT BLUEPRINTS at the bottom
 from accounts.views import accounts_bp
 from posts.views import posts_bp

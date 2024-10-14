@@ -5,6 +5,11 @@ from flask import render_template
 def index():
     return render_template('home/index.html')
 
+# Error handling function for rate limit breaches
+@app.errorhandler(429)
+def ratelimit_error(e):
+    return render_template('errors/rate_limit.html'), 429
+
 @app.route('/registration')
 def registration():
     return render_template('accounts/registration.html')
