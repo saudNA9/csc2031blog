@@ -17,18 +17,20 @@ def registration():
             flash('Email already exists', category="danger")
             return render_template('accounts/registration.html', form=form)
 
+        mfa_key = secrets.token_hex(16)  # Generate a random MFA key for the user
         new_user = User(email=form.email.data,
                         firstname=form.firstname.data,
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
-                        )
+                        mfa_key=mfa_key)
 
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Account Created', category='success')
-        return redirect(url_for('accounts.login'))
+        flash('Account Created. You must set up MFA before logging in.', category='success')
+        return redirect(url_for('accounts.mfa_setup', mfa_key=mfa_key))  # Redirect to MFA setup page
+
 
     return render_template('accounts/registration.html', form=form)
 
@@ -59,8 +61,23 @@ def login():
                 flash(f'Invalid email or password. You have {remaining_attempts} attempt(s) remaining.', 'danger')
             return redirect(url_for('accounts.login'))
 
-        # If login is successful, reset failed attempts and redirect
+        # Check if MFA is enabled and redirect to MFA setup if not enabled
+        if not user.mfa_enabled:
+            flash('Please set up MFA before logging in.', 'danger')
+            return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key))
+
+        # Add logic for checking the MFA PIN (example: form.mfa_pin.data)
+        mfa_pin = form.mfa_pin.data  # Assuming you add an mfa_pin field to your form
+        if not verify_mfa_pin(user.mfa_key, mfa_pin):  # Custom function to verify MFA PIN
+            flash('Invalid MFA PIN. Please try again.', 'danger')
+            return redirect(url_for('accounts.login'))
+
+        # If login is successful, reset failed attempts, mark MFA as enabled, and redirect
         session['failed_attempts'] = 0
+        if not user.mfa_enabled:
+            user.mfa_enabled = True
+            db.session.commit()  # Save the change to the database
+
         flash('Login successful', 'success')
         return redirect(url_for('posts.posts'))  # Assuming 'posts.posts' is the page to view posts
 
@@ -73,6 +90,9 @@ def unlock_account():
     flash('Your account has been unlocked. You may try logging in again.', 'success')
     return redirect(url_for('accounts.login'))
 
+@accounts_bp.route('/mfa_setup/<mfa_key>')
+def mfa_setup(mfa_key):
+    return render_template('mfa/setup.html', mfa_key=mfa_key)
 
 @accounts_bp.route('/account')
 def account():
