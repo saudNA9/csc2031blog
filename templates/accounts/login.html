@@ -36,6 +36,12 @@
                             {{ form.password(class="form-control") }}
                         </div>
 
+                        <!-- Add MFA PIN Field -->
+                        <div class="form-group">
+                            {{ form.mfa_pin.label }}<span style="color: red">*</span>
+                            {{ form.mfa_pin(class="form-control") }}  <!-- MFA PIN input -->
+                        </div>
+
                         <!-- reCAPTCHA Field -->
                         <div class="form-group">
                             {{ form.recaptcha() }}  <!-- Render the reCAPTCHA -->

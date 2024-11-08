@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>MFA Setup</h1>
+    <div class="alert alert-info">
+        You must enable Multi-Factor Authentication before logging in.
+    </div>
+
+    <!-- Special text styling to differentiate it -->
+    <p class="instructions">Follow the instructions below to set up an authenticator app:</p>
+
+    <ol class="numbered-list"> <!-- Ordered list for numbers aligned to the far left -->
+        <li>Open Microsoft Authenticator on your mobile.</li>
+        <li>Alternatively, download <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Google Authenticator</a> on your mobile.</li>
+        <li>Select add new account.</li>
+        <li>Manually enter the following key:</li>
+    </ol>
+
+    <div class="alert alert-success">
+        <strong>Your MFA Key:</strong> {{ mfa_key }}
+    </div>
+
+    <!-- Part 2: QR Code display for easier setup -->
+    {% if mfa_qr_uri %}
+    <div class="text-center">
+        <p>Or scan this QR code:</p>
+        <img src="{{ mfa_qr_uri }}" alt="MFA QR Code" class="mfa-qr-code"/>
+    </div>
+    {% endif %}
+
+    <!-- Login button instead of a link -->
+    <div class="text-center">
+        <a href="{{ url_for('accounts.login') }}" class="btn btn-success">Go to Login</a>
+    </div>
+</div>
+
+<!-- Custom styling for list, QR code, and button -->
+<style>
+    .instructions {
+        font-weight: bold;  /* Make it bold to stand out */
+        color: #007bff;  /* Change the color to blue to differentiate it */
+        text-align: center;
+        font-size: 1.2rem;  /* Slightly larger font size */
+        margin-bottom: 20px;
+    }
+
+    .numbered-list {
+        padding-left: 0;
+        list-style-type: none;
+        counter-reset: list-counter;
+        text-align: left; /* Text alignment remains as is */
+    }
+
+    .numbered-list li {
+        counter-increment: list-counter;
+        position: relative;
+        margin-bottom: 10px;
+        text-align: center; /* Keep text centered */
+    }
+
+    .numbered-list li::before {
+        content: counter(list-counter) ".";
+        position: absolute;
+        left: 0;  /* Keep numbers aligned to the far left */
+        font-weight: bold; /* Make numbers bold */
+    }
+
+    .mfa-qr-code {
+        margin-top: 20px;
+        max-width: 200px; /* Ensure the QR code isn't too large */
+        height: auto;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 10px 20px;
+        text-transform: uppercase;
+        font-size: 16px;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+</style>
+{% endblock %}

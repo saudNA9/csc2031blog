@@ -1,5 +1,4 @@
 from flask import Flask, url_for
-
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
@@ -10,6 +9,7 @@ from sqlalchemy import MetaData
 from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import pyotp  # For generating and verifying MFA keys
 
 app = Flask(__name__)
 
@@ -24,6 +24,9 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = '6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# FLUID LAYOUT FOR ADMIN PAGES
+app.config['FLASK_ADMIN_FLUID_LAYOUT'] = True  # This enables fluid layout for Flask-Admin pages
 
 metadata = MetaData(
     naming_convention={
@@ -60,6 +63,7 @@ class Post(db.Model):
        self.body = body  # Update body
        db.session.commit()  # Commit changes to the database
 
+# User table modified to handle MFA key and MFA enabled status
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -74,20 +78,23 @@ class User(db.Model):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
 
+    # MFA fields
+    mfa_key = db.Column(db.String(32), nullable=False, default='')  # Store MFA key
+    mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
+
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
 
-    def __init__(self, email, firstname, lastname, phone, password):
+    def __init__(self, email, firstname, lastname, phone, password, mfa_key='', mfa_enabled=False):
         self.email = email
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
         self.password = password
+        self.mfa_key = mfa_key
+        self.mfa_enabled = mfa_enabled
 
     def verify_password(self, password):
-        """
-        Verifies if the provided password matches the stored password.
-        """
         return self.password == password  # Simple password comparison (not hashed)
 
 # DATABASE ADMINISTRATOR
@@ -104,7 +111,7 @@ class PostView(ModelView):
 class UserView(ModelView):
     column_display_pk = True
     column_hide_backrefs = False
-    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts')
+    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'mfa_enabled', 'posts')
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]
@@ -118,6 +125,12 @@ limiter = Limiter(
     app=app,
     default_limits=["500 per day"]  # Default rate limit
 )
+
+# Function to generate QR code URI for TOTP (for QR Code setup in Part 2)
+def generate_mfa_qr_uri(email, mfa_key):
+    totp = pyotp.TOTP(mfa_key)
+    return totp.provisioning_uri(email, issuer_name="CSC2031 Blog")
+
 # IMPORT BLUEPRINTS at the bottom
 from accounts.views import accounts_bp
 from posts.views import posts_bp

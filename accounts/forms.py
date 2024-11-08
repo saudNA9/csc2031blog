@@ -38,5 +38,14 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
+    mfa_pin = StringField('MFA PIN', validators=[DataRequired()])  # Add MFA PIN field
     recaptcha = RecaptchaField()  # Add reCAPTCHA field here
     submit = SubmitField('Login')
+
+class MFACodeForm(FlaskForm):
+    """
+    This form is for users who are setting up MFA manually or scanning a QR code.
+    It asks the user to input their MFA PIN from their authenticator app.
+    """
+    mfa_pin = StringField('Enter MFA PIN', validators=[DataRequired()])
+    submit = SubmitField('Submit MFA PIN')
