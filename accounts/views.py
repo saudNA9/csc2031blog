@@ -14,7 +14,7 @@ accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 def verify_mfa_pin(mfa_key, mfa_pin):
     totp = pyotp.TOTP(mfa_key)
     valid = totp.verify(mfa_pin)
-    logging.info(f"Verifying MFA PIN: {mfa_pin}, Result: {valid}")
+    logging.info(f"Verifying MFA PIN: {mfa_pin}, Result: {valid}, Key: {mfa_key}")
     return valid
 
 @accounts_bp.route('/registration', methods=['GET', 'POST'])
@@ -40,12 +40,16 @@ def registration():
         db.session.add(new_user)
         db.session.commit()
 
+        # Log the generated MFA key to verify consistency
+        logging.info(f"MFA Key for {new_user.email} (During Registration): {new_user.mfa_key}")
+
         # Generate QR code URI for TOTP
         mfa_qr_uri = generate_mfa_qr_uri(new_user.email, mfa_key)
         flash('Account Created. You must set up MFA before logging in.', category='success')
         return redirect(url_for('accounts.mfa_setup', mfa_key=mfa_key, mfa_qr_uri=mfa_qr_uri))
 
     return render_template('accounts/registration.html', form=form)
+
 
 @accounts_bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("20 per minute")  # Apply a rate limit of 20 per minute
@@ -62,6 +66,9 @@ def login():
         # Query for user by email
         user = User.query.filter_by(email=form.email.data).first()
 
+        logging.info(
+            f"User found: {user.email if user else 'None'}, MFA Enabled: {user.mfa_enabled if user else 'N/A'}")
+
         # Check if the user exists and the password is correct
         if not user or not user.verify_password(form.password.data):
             session['failed_attempts'] += 1  # Increment failed attempts
@@ -72,27 +79,29 @@ def login():
                 flash(f'Invalid email or password. You have {remaining_attempts} attempt(s) remaining.', 'danger')
             return redirect(url_for('accounts.login'))
 
-        # Check if MFA is enabled and redirect to MFA setup if not enabled
-        if not user.mfa_enabled:
+        # Check if MFA is enabled
+        if user.mfa_enabled:
+            mfa_pin = form.mfa_pin.data
+            if not verify_mfa_pin(user.mfa_key, mfa_pin):
+                session['failed_attempts'] += 1
+                flash('Login failed: Invalid MFA PIN.', 'danger')
+                return redirect(url_for('accounts.login'))
+        else:
+            # Redirect to MFA setup if MFA is not enabled
             mfa_qr_uri = generate_mfa_qr_uri(user.email, user.mfa_key)
             flash('Please set up MFA before logging in.', 'danger')
             return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key, mfa_qr_uri=mfa_qr_uri))
 
-        # Verify MFA PIN
-        mfa_pin = form.mfa_pin.data
-        if not verify_mfa_pin(user.mfa_key, mfa_pin):
-            session['failed_attempts'] += 1
-            flash('Login failed: Invalid MFA PIN.', 'danger')
-            return redirect(url_for('accounts.login'))
-
         # Reset failed attempts if login is successful
         session['failed_attempts'] = 0
 
-        # Enable MFA if not enabled
+        # Enable MFA if not enabled (first-time MFA setup)
         if not user.mfa_enabled:
             user.mfa_enabled = True
             db.session.commit()
+            logging.info(f"MFA enabled for user {user.email}")  # Log this action
 
+        # If all checks pass, allow login and redirect to posts page
         flash('Login successful', 'success')
         return redirect(url_for('posts.posts'))  # Redirect to the main posts page
 
@@ -109,6 +118,8 @@ def unlock_account():
 def mfa_setup(mfa_key):
     # Get the QR code URI to display on the setup page
     mfa_qr_uri = request.args.get('mfa_qr_uri')
+    # In mfa_setup route, check key when loading the page
+    logging.info(f"MFA Key for {mfa_key} (MFA Setup Page): {mfa_key}")
     return render_template('accounts/mfa_setup.html', mfa_key=mfa_key, mfa_qr_uri=mfa_qr_uri)
 
 @accounts_bp.route('/account')
