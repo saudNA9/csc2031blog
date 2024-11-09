@@ -1,41 +1,54 @@
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for, session, request
 from accounts.forms import RegistrationForm, LoginForm
-from config import User, db
-from flask import session
-from config import limiter
+from config import User, db, limiter, generate_mfa_qr_uri
+import pyotp
+import secrets
+import logging
+
+# Initialize the logger
+logging.basicConfig(level=logging.INFO)
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 
+# Function to verify MFA PIN using pyotp
+def verify_mfa_pin(mfa_key, mfa_pin):
+    totp = pyotp.TOTP(mfa_key)
+    valid = totp.verify(mfa_pin)
+    logging.info(f"Verifying MFA PIN: {mfa_pin}, Result: {valid}")
+    return valid
 
 @accounts_bp.route('/registration', methods=['GET', 'POST'])
 def registration():
     form = RegistrationForm()
 
     if form.validate_on_submit():
-
+        # Check if email is already registered
         if User.query.filter_by(email=form.email.data).first():
             flash('Email already exists', category="danger")
             return render_template('accounts/registration.html', form=form)
 
+        # Generate a TOTP-compatible MFA key
+        mfa_key = pyotp.random_base32()
         new_user = User(email=form.email.data,
                         firstname=form.firstname.data,
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
-                        )
+                        mfa_key=mfa_key,
+                        mfa_enabled=False)  # Initially, MFA is not enabled
 
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Account Created', category='success')
-        return redirect(url_for('accounts.login'))
+        # Generate QR code URI for TOTP
+        mfa_qr_uri = generate_mfa_qr_uri(new_user.email, mfa_key)
+        flash('Account Created. You must set up MFA before logging in.', category='success')
+        return redirect(url_for('accounts.mfa_setup', mfa_key=mfa_key, mfa_qr_uri=mfa_qr_uri))
 
     return render_template('accounts/registration.html', form=form)
 
-# Apply a rate limit of 3 per minute for testing (or adjust to 20 per minute later)
-
 @accounts_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("20 per minute")
+@limiter.limit("20 per minute")  # Apply a rate limit of 20 per minute
 def login():
     form = LoginForm()
 
@@ -59,20 +72,44 @@ def login():
                 flash(f'Invalid email or password. You have {remaining_attempts} attempt(s) remaining.', 'danger')
             return redirect(url_for('accounts.login'))
 
-        # If login is successful, reset failed attempts and redirect
+        # Check if MFA is enabled and redirect to MFA setup if not enabled
+        if not user.mfa_enabled:
+            mfa_qr_uri = generate_mfa_qr_uri(user.email, user.mfa_key)
+            flash('Please set up MFA before logging in.', 'danger')
+            return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key, mfa_qr_uri=mfa_qr_uri))
+
+        # Verify MFA PIN
+        mfa_pin = form.mfa_pin.data
+        if not verify_mfa_pin(user.mfa_key, mfa_pin):
+            session['failed_attempts'] += 1
+            flash('Login failed: Invalid MFA PIN.', 'danger')
+            return redirect(url_for('accounts.login'))
+
+        # Reset failed attempts if login is successful
         session['failed_attempts'] = 0
+
+        # Enable MFA if not enabled
+        if not user.mfa_enabled:
+            user.mfa_enabled = True
+            db.session.commit()
+
         flash('Login successful', 'success')
-        return redirect(url_for('posts.posts'))  # Assuming 'posts.posts' is the page to view posts
+        return redirect(url_for('posts.posts'))  # Redirect to the main posts page
 
     return render_template('accounts/login.html', form=form, is_locked=is_locked)
 
-
 @accounts_bp.route('/unlock', methods=['GET'])
 def unlock_account():
-    session['failed_attempts'] = 0  # Reset the failed attempts
+    # Reset the failed attempts to unlock the account
+    session['failed_attempts'] = 0
     flash('Your account has been unlocked. You may try logging in again.', 'success')
     return redirect(url_for('accounts.login'))
 
+@accounts_bp.route('/mfa_setup/<mfa_key>')
+def mfa_setup(mfa_key):
+    # Get the QR code URI to display on the setup page
+    mfa_qr_uri = request.args.get('mfa_qr_uri')
+    return render_template('accounts/mfa_setup.html', mfa_key=mfa_key, mfa_qr_uri=mfa_qr_uri)
 
 @accounts_bp.route('/account')
 def account():
