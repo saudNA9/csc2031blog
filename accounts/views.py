@@ -84,7 +84,8 @@ def login():
         # Validate user credentials
         if not user or not user.verify_password(form.password.data):
             session['failed_attempts'] += 1
-            flash('Invalid email or password.', 'danger')
+            attempts_left = 3 - session['failed_attempts']
+            flash(f'Invalid email or password. You have {attempts_left} attempts remaining.', 'danger')
             return redirect(url_for('accounts.login'))
 
         totp = pyotp.TOTP(user.mfa_key)
@@ -96,7 +97,9 @@ def login():
                 flash('Login successful', 'success')
                 return redirect(url_for('posts.posts'))
             else:
-                flash('Invalid MFA PIN.', 'danger')
+                session['failed_attempts'] += 1
+                attempts_left = 3 - session['failed_attempts']
+                flash(f'Invalid MFA PIN. You have {attempts_left} attempts remaining.', 'danger')
         else:
             # If MFA is not enabled, verify MFA PIN and enable MFA
             if totp.verify(form.mfa_pin.data):
@@ -106,13 +109,13 @@ def login():
                 flash('MFA setup complete. You may now log in.', 'success')
                 return redirect(url_for('posts.posts'))
             else:
-                # Redirect to MFA setup page if MFA is not enabled and PIN is incorrect
+                session['failed_attempts'] += 1
+                attempts_left = 3 - session['failed_attempts']
                 qr_code_uri, mfa_qr_uri = generate_mfa_qr_uri(user.email, user.mfa_key)
-                flash('MFA is not enabled for your account. Please set up MFA to proceed.', 'warning')
+                flash(f'MFA is not enabled for your account. Please set up MFA to proceed. You have {attempts_left} attempts remaining.', 'warning')
                 return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key, mfa_qr_uri=mfa_qr_uri))
 
-        # Increment failed attempts for any failed authentication
-        session['failed_attempts'] += 1
+        # Check if the number of attempts has reached the limit
         attempts_left = 3 - session['failed_attempts']
         if session['failed_attempts'] >= 3:
             flash('Your account is locked due to too many failed login attempts.', 'danger')
