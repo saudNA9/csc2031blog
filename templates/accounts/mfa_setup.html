@@ -7,14 +7,12 @@
         You must enable Multi-Factor Authentication before logging in.
     </div>
 
-    <!-- Special text styling to differentiate it -->
     <p class="instructions">Follow the instructions below to set up an authenticator app:</p>
 
     <ol class="numbered-list">
-        <li>Open Microsoft Authenticator on your mobile.</li>
-        <li>Alternatively, download <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Google Authenticator</a> on your mobile.</li>
-        <li>Select "Add new account".</li>
-        <li>Manually enter the following key or scan the QR code:</li>
+        <li>Open your authenticator app (e.g., Microsoft Authenticator or Google Authenticator).</li>
+        <li>Select "Add new account" and choose "Scan a QR code" or "Manual entry" option.</li>
+        <li>If scanning a QR code, scan the QR code below. If manually entering the key, use the MFA Key provided.</li>
     </ol>
 
     <!-- Display the MFA key -->
@@ -22,7 +20,7 @@
         <strong>Your MFA Key:</strong> {{ mfa_key }}
     </div>
 
-    <!-- QR Code display for easier setup -->
+    <!-- Display the base64-encoded QR code image if provided -->
     {% if mfa_qr_uri %}
     <div class="text-center">
         <p>Or scan this QR code:</p>
@@ -36,7 +34,6 @@
     </div>
 </div>
 
-<!-- Custom styling for list, QR code, and button -->
 <style>
     .instructions {
         font-weight: bold;
@@ -63,7 +60,7 @@
     .numbered-list li::before {
         content: counter(list-counter) ".";
         position: absolute;
-        left: -20px; /* Adjusted to keep numbers aligned to the left */
+        left: -20px;
         font-weight: bold;
     }
 
@@ -73,7 +70,7 @@
         height: auto;
         border: 1px solid #ddd;
         padding: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for styling */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .btn-success {
