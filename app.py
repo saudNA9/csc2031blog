@@ -1,4 +1,4 @@
-from config import app, db, User  # Ensure User is imported from your models
+from config import app, db, User, Post  # Ensure User is imported from your models
 from flask import render_template
 from flask_login import LoginManager
 
@@ -33,8 +33,10 @@ def account():
     return render_template('accounts/account.html')
 
 @app.route('/posts')
-def posts():
-    return render_template('posts/posts.html')
+def view_posts():
+    posts = Post.query.all()
+    return render_template('posts/posts.html', posts=posts)
+
 
 @app.route('/create')
 def create():

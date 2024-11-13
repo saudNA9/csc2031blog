@@ -53,15 +53,17 @@ class Post(db.Model):
    body = db.Column(db.Text, nullable=False)
    user = db.relationship("User", back_populates="posts")
 
-   def __init__(self, title, body):
+   def __init__(self, title, body, user_id):
        self.created = datetime.now()
        self.title = title
        self.body = body
+       self.user_id = user_id
 
-   def update(self, title, body):
+   def update(self, title, body, user_id):
        self.created = datetime.now()  # Update created time
        self.title = title  # Update title
        self.body = body  # Update body
+       self.user_id = user_id
        db.session.commit()  # Commit changes to the database
 
 # User table modified to handle MFA key and MFA enabled status

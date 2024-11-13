@@ -24,12 +24,14 @@
                             <div class="card-header bg-dark text-white border border-dark">
                                 <h4>{{ post.title }}</h4>
                                 <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
+                                <br>
+                                <small>Posted by: {{ post.user.firstname }} {{ post.user.lastname }}</small>
                             </div>
                             <div class="card-body">{{ post.body }}</div>
                             <div class="card-footer">
-        <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
-         <a class="navbar-item" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
-    </div>
+                                <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                                <a class="navbar-item" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                            </div>
                         </div>
                         <br>
                     {% endfor %}
