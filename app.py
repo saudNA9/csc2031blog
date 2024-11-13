@@ -1,5 +1,15 @@
-from config import app
+from config import app, db, User  # Ensure User is imported from your models
 from flask import render_template
+from flask_login import LoginManager
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect unauthorized users to the login page
+
+# Define the user loader callback
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route('/')
 def index():

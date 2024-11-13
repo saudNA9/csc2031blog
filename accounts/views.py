@@ -7,6 +7,8 @@ import qrcode
 import io
 from io import BytesIO
 import base64
+from flask_login import login_user, logout_user, login_required
+
 
 # Initialize the logger
 logging.basicConfig(level=logging.INFO)
@@ -93,6 +95,7 @@ def login():
         # If MFA is enabled, verify MFA PIN
         if user.mfa_enabled:
             if totp.verify(form.mfa_pin.data):
+                login_user(user)
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 flash('Login successful', 'success')
                 return redirect(url_for('posts.posts'))
@@ -141,6 +144,14 @@ def mfa_setup(mfa_key):
 def unlock_account():
     session['failed_attempts'] = 0
     flash('Your login attempts have been reset. You may try logging in again.', 'success')
+    return redirect(url_for('accounts.login'))
+
+
+@accounts_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'success')
     return redirect(url_for('accounts.login'))
 
 

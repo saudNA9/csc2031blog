@@ -10,6 +10,7 @@ from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import pyotp  # For generating and verifying MFA keys
+from flask_login import UserMixin
 
 app = Flask(__name__)
 
@@ -64,7 +65,7 @@ class Post(db.Model):
        db.session.commit()  # Commit changes to the database
 
 # User table modified to handle MFA key and MFA enabled status
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -84,6 +85,9 @@ class User(db.Model):
 
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
+
+    def get_id(self):
+        return str(self.id)
 
     def __init__(self, email, firstname, lastname, phone, password, mfa_key='', mfa_enabled=False):
         self.email = email
