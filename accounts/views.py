@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, session, request, make_response
 from accounts.forms import RegistrationForm, LoginForm
-from config import User, db, limiter
+from config import User, db, Post, limiter
 import pyotp
 import logging
 import qrcode
 import io
 from io import BytesIO
 import base64
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 
 
 # Initialize the logger
@@ -156,5 +156,8 @@ def logout():
 
 
 @accounts_bp.route('/account')
+@login_required
 def account():
-    return render_template('accounts/account.html')
+    user = current_user  # Get the logged-in user
+    user_posts = Post.query.filter_by(userid=user.id).all()  # Adjust column name to 'userid'
+    return render_template('accounts/account.html', user=user, posts=user_posts)

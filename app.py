@@ -1,6 +1,7 @@
 from config import app, db, User, Post  # Ensure User is imported from your models
-from flask import render_template
-from flask_login import LoginManager
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_user, current_user, login_required
+from accounts.forms import LoginForm
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -24,13 +25,25 @@ def ratelimit_error(e):
 def registration():
     return render_template('accounts/registration.html')
 
-@app.route('/login')
-def login():
-    return render_template('accounts/login.html')
 
-@app.route('/account')
-def account():
-    return render_template('accounts/account.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.verify_password(form.password.data) and user.verify_mfa(form.mfa_pin.data):
+            login_user(user)
+            flash('Login successful', 'success')
+
+            # Get the 'next' parameter from the URL
+            next_page = request.args.get('next')
+
+            # Redirect to the next page if it exists, otherwise to the home page
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Invalid email, password, or MFA PIN', 'danger')
+
+    return render_template('accounts/login.html', form=form)
 
 @app.route('/posts')
 def view_posts():

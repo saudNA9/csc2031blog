@@ -48,7 +48,7 @@ class Post(db.Model):
 
    id = db.Column(db.Integer, primary_key=True)
    userid = db.Column(db.Integer, db.ForeignKey('users.id'))
-   created = db.Column(db.DateTime, nullable=False)
+   created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
    title = db.Column(db.Text, nullable=False)
    body = db.Column(db.Text, nullable=False)
    user = db.relationship("User", back_populates="posts")
@@ -103,6 +103,11 @@ class User(db.Model, UserMixin):
     def verify_password(self, password):
         return self.password == password  # Simple password comparison (not hashed)
 
+    def verify_mfa(self, mfa_pin):
+        if not self.mfa_key:
+            return False  # Return False if MFA is not set up
+        totp = pyotp.TOTP(self.mfa_key)
+        return totp.verify(mfa_pin)  # Verify the provided MFA PIN
 # DATABASE ADMINISTRATOR
 class MainIndexLink(MenuLink):
     def get_url(self):
@@ -143,6 +148,6 @@ from posts.views import posts_bp
 from security.views import security_bp
 
 # REGISTER BLUEPRINTS
-app.register_blueprint(accounts_bp)
-app.register_blueprint(posts_bp)
-app.register_blueprint(security_bp)
+app.register_blueprint(accounts_bp, url_prefix='/accounts')
+app.register_blueprint(posts_bp, url_prefix='/posts')
+app.register_blueprint(security_bp, url_prefix='/security')
