@@ -7,33 +7,51 @@
             <div class="col-2"></div>
             <div class="col-8">
                 <div class="p-2 bg-light border border-primary" style="text-align: left">
+                    <!-- Flash Messages -->
                     <div>
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% for category, message in messages %}
                                 <div style="text-align: left" class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
                                     {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="delete_flash(this)">
                                         <span>&times;</span>
                                     </button>
                                 </div>
                             {% endfor %}
                         {% endwith %}
                     </div>
+
+                    <!-- Posts -->
                     {% for post in posts %}
-                        <div class="card border border-dark">
-                            <div class="card-header bg-dark text-white border border-dark">
+                        <div class="card border border-dark mb-3">
+                            <div class="card-header bg-dark text-white">
                                 <h4>{{ post.title }}</h4>
                                 <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
                                 <br>
-                                <small>Posted by: {{ post.user.firstname }} {{ post.user.lastname }}</small>
+                                <small>
+                                    Posted by:
+                                    {% if post.user %}
+                                        {{ post.user.firstname }} {{ post.user.lastname }}
+                                    {% else %}
+                                        Anonymous
+                                    {% endif %}
+                                </small>
                             </div>
-                            <div class="card-body">{{ post.body }}</div>
+                            <div class="card-body">
+                                <p>{{ post.body }}</p>
+                            </div>
                             <div class="card-footer">
-                                <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
-                                <a class="navbar-item" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                                <!-- Show Update/Delete buttons only for the post owner -->
+                                {% if current_user.is_authenticated and post.user_id == current_user.id %}
+                                    <a class="btn btn-primary btn-sm" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                                    <a class="btn btn-danger btn-sm" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                                {% endif %}
                             </div>
                         </div>
-                        <br>
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            <strong>No posts available. Be the first to create one!</strong>
+                        </div>
                     {% endfor %}
                 </div>
             </div>

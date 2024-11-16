@@ -59,11 +59,10 @@ class Post(db.Model):
        self.body = body
        self.user_id = user_id
 
-   def update(self, title, body, user_id):
+   def update(self, title, body):
        self.created = datetime.now()  # Update created time
        self.title = title  # Update title
        self.body = body  # Update body
-       self.user_id = user_id
        db.session.commit()  # Commit changes to the database
 
 # User table modified to handle MFA key and MFA enabled status

@@ -5,7 +5,7 @@ from accounts.forms import LoginForm
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Redirect unauthorized users to the login page
+login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to the login page
 
 # Define the user loader callback
 @login_manager.user_loader
