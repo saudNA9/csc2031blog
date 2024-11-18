@@ -29,12 +29,7 @@
                                 <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
                                 <br>
                                 <small>
-                                    Posted by:
-                                    {% if post.user %}
-                                        {{ post.user.firstname }} {{ post.user.lastname }}
-                                    {% else %}
-                                        Anonymous
-                                    {% endif %}
+                                    Posted by: {{ post.user.firstname }} {{ post.user.lastname }}
                                 </small>
                             </div>
                             <div class="card-body">
@@ -43,8 +38,8 @@
                             <div class="card-footer">
                                 <!-- Show Update/Delete buttons only for the post owner -->
                                 {% if current_user.is_authenticated and post.user_id == current_user.id %}
-                                    <a class="btn btn-primary btn-sm" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
-                                    <a class="btn btn-danger btn-sm" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                                <a class="btn btn-primary btn-sm" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                                <a class="btn btn-danger btn-sm" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
                                 {% endif %}
                             </div>
                         </div>

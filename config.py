@@ -53,11 +53,11 @@ class Post(db.Model):
    body = db.Column(db.Text, nullable=False)
    user = db.relationship("User", back_populates="posts")
 
-   def __init__(self, title, body, user_id):
+   def __init__(self, title, body, userid):
        self.created = datetime.now()
        self.title = title
        self.body = body
-       self.user_id = user_id
+       self.userid = userid
 
    def update(self, title, body):
        self.created = datetime.now()  # Update created time

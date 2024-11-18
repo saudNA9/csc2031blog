@@ -21,7 +21,7 @@ def create():
     form = PostForm()
     if form.validate_on_submit():
         print(f"Logged-in User ID: {current_user.id}, User Email: {current_user.email}")
-        new_post = Post(title=form.title.data, body=form.body.data, user_id=current_user.id)
+        new_post = Post(title=form.title.data, body=form.body.data, userid=current_user.id)
         db.session.add(new_post)
         db.session.commit()
         flash('Post created successfully!', category='success')
