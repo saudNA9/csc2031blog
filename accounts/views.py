@@ -53,13 +53,14 @@ def registration():
             phone=form.phone.data,
             password=form.password.data,
             mfa_key=mfa_key,
-            mfa_enabled=False  # Initially set MFA as disabled
+            mfa_enabled=False,  # Initially set MFA as disabled
+            role="end_user"
         )
 
         db.session.add(new_user)
         db.session.commit()
 
-        # Log the generated MFA key
+        logging.info(f"Registered new user: {new_user.email}, Role: {new_user.role}")
         logging.info(f"MFA Key for {new_user.email} (During Registration): {new_user.mfa_key}")
 
         # Generate QR code URI for TOTP
@@ -98,7 +99,14 @@ def login():
                 login_user(user)
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 flash('Login successful', 'success')
-                return redirect(url_for('posts.posts'))
+
+                if user.role == 'db_admin':
+                    return redirect(url_for('admin.index'))
+                elif user.role == 'sec_admin':
+                    return redirect(url_for('security.security'))
+                else:  # Default for 'end_user'
+                    return redirect(url_for('posts.posts'))
+
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']
@@ -111,7 +119,12 @@ def login():
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 login_user(user)  # Log in the user immediately after MFA setup
                 flash('MFA setup complete. You are now logged in.', 'success')
-                return redirect(url_for('posts.posts'))
+                if user.role == 'db_admin':
+                    return redirect(url_for('admin.index'))
+                elif user.role == 'sec_admin':
+                    return redirect(url_for('security.security'))
+                else:
+                    return redirect(url_for('posts.posts'))
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']

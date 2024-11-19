@@ -70,27 +70,20 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # User authentication information.
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
-
-    # User information
     firstname = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
-
-    # MFA fields
     mfa_key = db.Column(db.String(32), nullable=False, default='')  # Store MFA key
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
-
-    # User posts
+    role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
 
     def get_id(self):
         return str(self.id)
 
-    def __init__(self, email, firstname, lastname, phone, password, mfa_key='', mfa_enabled=False):
+    def __init__(self, email, firstname, lastname, phone, password, mfa_key='', mfa_enabled=False, role="end_user"):
         self.email = email
         self.firstname = firstname
         self.lastname = lastname
@@ -98,6 +91,7 @@ class User(db.Model, UserMixin):
         self.password = password
         self.mfa_key = mfa_key
         self.mfa_enabled = mfa_enabled
+        self.role = role
 
     def verify_password(self, password):
         return self.password == password  # Simple password comparison (not hashed)
