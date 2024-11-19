@@ -65,3 +65,22 @@ def security():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.before_request
+def restrict_access():
+    # Restrict anonymous users
+    if not current_user.is_authenticated:
+        restricted_routes_anonymous = [
+            'accounts.account', 'posts.posts', 'posts.create',
+            'posts.update', 'posts.delete', 'accounts.logout', 'security.security'
+        ]
+        if request.endpoint in restricted_routes_anonymous:
+            flash("You must be logged in to access this page.", "danger")
+            return redirect(url_for('accounts.login'))
+
+    # Restrict authenticated users
+    if current_user.is_authenticated:
+        restricted_routes_authenticated = ['accounts.registration', 'accounts.login']
+        if request.endpoint in restricted_routes_authenticated:
+            flash("You are already logged in.", "danger")
+            return redirect(url_for('posts.posts'))

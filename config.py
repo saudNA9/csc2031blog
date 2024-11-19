@@ -1,5 +1,5 @@
-from flask import Flask, url_for
-from flask_admin import Admin
+from flask import Flask, url_for, redirect, flash
+from flask_admin import Admin, AdminIndexView, expose  # Added expose for custom views
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 import secrets
@@ -10,7 +10,7 @@ from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import pyotp  # For generating and verifying MFA keys
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user, login_required  # Ensures login_required is available
 
 app = Flask(__name__)
 
@@ -108,23 +108,40 @@ class User(db.Model, UserMixin):
         totp = pyotp.TOTP(self.mfa_key)
         return totp.verify(mfa_pin)  # Verify the provided MFA PIN
 # DATABASE ADMINISTRATOR
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated  # Allow access only to authenticated users
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash("You are not authorized to access the admin panel.", "danger")
+        return redirect(url_for('accounts.login'))
+
+# Custom PostView to restrict access
+class PostView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated  # Allow only authenticated users
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash("You are not authorized to view the Post database.", "danger")
+        return redirect(url_for('accounts.login'))
+
+# Custom UserView to restrict access
+class UserView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated  # Allow only authenticated users
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash("You are not authorized to view the User database.", "danger")
+        return redirect(url_for('accounts.login'))
+
+admin = Admin(app, name='DB Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
+admin._menu = admin._menu[1:]
+
+
 class MainIndexLink(MenuLink):
     def get_url(self):
-        return url_for('index')
+        return url_for('index')  # Redirects to the home page
 
-
-class PostView(ModelView):
-    column_display_pk = True
-    column_hide_backrefs = False
-    column_list = ('id', 'userid', 'created', 'title', 'body', 'user')
-
-class UserView(ModelView):
-    column_display_pk = True
-    column_hide_backrefs = False
-    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'mfa_enabled', 'posts')
-
-admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
-admin._menu = admin._menu[1:]
 admin.add_link(MainIndexLink(name='Home Page'))
 admin.add_view(PostView(Post, db.session))
 admin.add_view(UserView(User, db.session))
