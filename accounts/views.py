@@ -109,7 +109,8 @@ def login():
                 user.mfa_enabled = True
                 db.session.commit()
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
-                flash('MFA setup complete. You may now log in.', 'success')
+                login_user(user)  # Log in the user immediately after MFA setup
+                flash('MFA setup complete. You are now logged in.', 'success')
                 return redirect(url_for('posts.posts'))
             else:
                 session['failed_attempts'] += 1
