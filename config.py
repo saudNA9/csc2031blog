@@ -113,20 +113,20 @@ class MyAdminIndexView(AdminIndexView):
 # Custom PostView to restrict access
 class PostView(ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated  # Allow only authenticated users
+        return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
         flash("You are not authorized to view the Post database.", "danger")
-        return redirect(url_for('accounts.login'))
+        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
 
 # Custom UserView to restrict access
 class UserView(ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated  # Allow only authenticated users
+        return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
         flash("You are not authorized to view the User database.", "danger")
-        return redirect(url_for('accounts.login'))
+        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
 admin._menu = admin._menu[1:]

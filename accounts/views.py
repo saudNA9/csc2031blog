@@ -189,6 +189,18 @@ def restrict_access():
             return redirect(url_for('posts.posts'))
 
 
+@accounts_bp.app_errorhandler(403)
+def forbidden_error(e):
+    error_message = "You are not authorized to access this page."
+    return render_template('errors/403.html', error=error_message), 403
+
+
+@accounts_bp.route('/forbidden_error')
+@login_required
+def forbidden_error_page():
+    error_message = request.args.get('error', 'You are not authorized to access this page.')
+    return render_template('errors/403.html', error=error_message)
+
 
 @accounts_bp.route('/account')
 @login_required
