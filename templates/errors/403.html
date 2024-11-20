@@ -27,7 +27,9 @@
             background-color: #28a745; /* Green button */
             padding: 12px 25px;
             border-radius: 5px;
+            margin: 5px; /* Add spacing between buttons */
             transition: background-color 0.3s ease;
+            display: inline-block;
         }
         a:hover {
             background-color: #218838; /* Darker green on hover */
@@ -46,7 +48,8 @@
     <div class="container">
         <h1>403 Forbidden</h1>
         <p>You are not authorized to access this page.</p>
-        <a href="{{ url_for('accounts.login') }}">Return to Login</a>
+        <a href="javascript:history.back()" class="btn">Go Back</a>
+        <a href="/" class="btn">Go Home</a>
     </div>
 </body>
 </html>

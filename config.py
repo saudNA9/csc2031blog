@@ -1,4 +1,4 @@
-from flask import Flask, url_for, redirect, flash
+from flask import Flask, url_for, redirect, flash, abort
 from flask_admin import Admin, AdminIndexView, expose  # Added expose for custom views
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
@@ -103,42 +103,38 @@ class User(db.Model, UserMixin):
         return totp.verify(mfa_pin)  # Verify the provided MFA PIN
 # DATABASE ADMINISTRATOR
 class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        # Custom index view for DB Admin
+        if not current_user.is_authenticated or current_user.role != 'db_admin':
+            abort(403)
+        return super().index()
+
     def is_accessible(self):
-        return current_user.is_authenticated  # Allow access only to authenticated users
+        return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-        flash("You are not authorized to access the admin panel.", "danger")
-        return redirect(url_for('accounts.login'))
+        abort(403)
 
-# Custom PostView to restrict access
 class PostView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-        flash("You are not authorized to view the Post database.", "danger")
-        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
+        abort(403)
 
-# Custom UserView to restrict access
 class UserView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-        flash("You are not authorized to view the User database.", "danger")
-        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
+        abort(403)
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
-admin._menu = admin._menu[1:]
-
-
-class MainIndexLink(MenuLink):
-    def get_url(self):
-        return url_for('index')  # Redirects to the home page
-
-admin.add_link(MainIndexLink(name='Home Page'))
-admin.add_view(PostView(Post, db.session))
-admin.add_view(UserView(User, db.session))
+admin._menu = [item for item in admin._menu if item.name != "Home"]
+admin.add_link(MenuLink(name="Home", url='/'))
+admin.add_view(PostView(Post, db.session, name="Posts", endpoint="admin_post"))
+admin.add_view(UserView(User, db.session, name="Users", endpoint="admin_user"))
 
 # Application-wide rate limiter with a default limit of 500 function calls per day
 limiter = Limiter(

@@ -195,13 +195,6 @@ def forbidden_error(e):
     return render_template('errors/403.html', error=error_message), 403
 
 
-@accounts_bp.route('/forbidden_error')
-@login_required
-def forbidden_error_page():
-    error_message = request.args.get('error', 'You are not authorized to access this page.')
-    return render_template('errors/403.html', error=error_message)
-
-
 @accounts_bp.route('/account')
 @login_required
 def account():

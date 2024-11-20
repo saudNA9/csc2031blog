@@ -10,8 +10,7 @@ posts_bp = Blueprint('posts', __name__, template_folder='templates')
 @login_required
 def posts():
     if current_user.role in ['db_admin', 'sec_admin']:
-        flash("You are not authorized to view posts.", "danger")
-        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
+        abort(403)
     all_posts = Post.query.order_by(desc('id')).all()
     return render_template('posts/posts.html', posts=all_posts)
 
@@ -19,8 +18,7 @@ def posts():
 @login_required
 def create():
     if current_user.role in ['db_admin', 'sec_admin']:
-        flash("You are not authorized to create posts.", "danger")
-        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
+        abort(403)
     form = PostForm()
     if form.validate_on_submit():
         new_post = Post(title=form.title.data, body=form.body.data, userid=current_user.id)
@@ -54,8 +52,7 @@ def delete(id):
     post_to_delete = Post.query.filter_by(id=id).first()
 
     if not post_to_delete or post_to_delete.userid != current_user.id:
-        flash("You are not authorized to delete this post.", "danger")
-        return redirect(url_for('accounts.forbidden_error_page', error='Access Denied'))
+        abort(403)
 
     db.session.delete(post_to_delete)
     db.session.commit()
