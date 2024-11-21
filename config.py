@@ -79,6 +79,7 @@ class User(db.Model, UserMixin):
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
     role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
+    log = db.relationship("Log", uselist=False, back_populates="user")
 
     def get_id(self):
         return str(self.id)
@@ -101,6 +102,31 @@ class User(db.Model, UserMixin):
             return False  # Return False if MFA is not set up
         totp = pyotp.TOTP(self.mfa_key)
         return totp.verify(mfa_pin)  # Verify the provided MFA PIN
+
+    def create_log(self):
+        if not self.log:
+            user_log = Log(user_id=self.id)
+            db.session.add(user_log)
+            db.session.commit()
+
+
+class Log(db.Model):
+    __tablename__ = 'logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    latest_login = db.Column(db.DateTime)
+    previous_login = db.Column(db.DateTime)
+    latest_ip = db.Column(db.String(100))
+    previous_ip = db.Column(db.String(100))
+    user = db.relationship("User", back_populates="log")
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.user_registered = datetime.now()
+
+
 # DATABASE ADMINISTRATOR
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
@@ -114,7 +140,12 @@ class MyAdminIndexView(AdminIndexView):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-        abort(403)
+        # If the user is authenticated but not authorized, show 403
+        if current_user.is_authenticated:
+            abort(403)
+        # If the user is not authenticated, redirect to login page
+        flash("Please log in to access this page.", "danger")
+        return redirect(url_for('accounts.login'))
 
 class PostView(ModelView):
     def is_accessible(self):

@@ -1,5 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Security Settings</h1>
+    <h2 class="mb-4 text-center">Security</h2>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Account #</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Registered</th>
+                <th>Latest Login</th>
+                <th>Previous Login</th>
+                <th>Latest IP</th>
+                <th>Previous IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.user_id }}</td>
+                <td>{{ log.user.email }}</td>
+                <td>{{ log.user.role }}</td>
+                <td>{{ log.user_registered }}</td>
+                <td>{{ log.latest_login or "None" }}</td>
+                <td>{{ log.previous_login or "None" }}</td>
+                <td>{{ log.latest_ip or "None" }}</td>
+                <td>{{ log.previous_ip or "None" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

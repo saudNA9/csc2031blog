@@ -4,10 +4,10 @@ from config import User, db, Post, limiter
 import pyotp
 import logging
 import qrcode
-import io
 from io import BytesIO
 import base64
 from flask_login import login_user, logout_user, login_required, current_user
+from datetime import datetime
 
 
 # Initialize the logger
@@ -38,6 +38,16 @@ def generate_mfa_qr_uri(email, mfa_key):
 @accounts_bp.route('/registration', methods=['GET', 'POST'])
 def registration():
     form = RegistrationForm()
+    if current_user.is_authenticated:
+        flash("You are already logged in.", "danger")
+
+        # Redirect based on user role
+        if current_user.role == 'db_admin':
+            return redirect(url_for('admin.index'))
+        elif current_user.role == 'sec_admin':
+            return redirect(url_for('security.security'))
+        else:  # Default for 'end_user'
+            return redirect(url_for('posts.posts'))
 
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first():
@@ -59,6 +69,7 @@ def registration():
 
         db.session.add(new_user)
         db.session.commit()
+        new_user.create_log()
 
         logging.info(f"Registered new user: {new_user.email}, Role: {new_user.role}")
         logging.info(f"MFA Key for {new_user.email} (During Registration): {new_user.mfa_key}")
@@ -100,17 +111,11 @@ def login():
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 flash('Login successful', 'success')
 
-                if user.role == 'db_admin':
-                    return redirect(url_for('admin.index'))
-                elif user.role == 'sec_admin':
-                    return redirect(url_for('security.security'))
-                else:  # Default for 'end_user'
-                    return redirect(url_for('posts.posts'))
-
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']
                 flash(f'Invalid MFA PIN. You have {attempts_left} attempts remaining.', 'danger')
+                return redirect(url_for('accounts.login'))
         else:
             # If MFA is not enabled, verify MFA PIN and enable MFA
             if totp.verify(form.mfa_pin.data):
@@ -119,18 +124,29 @@ def login():
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 login_user(user)  # Log in the user immediately after MFA setup
                 flash('MFA setup complete. You are now logged in.', 'success')
-                if user.role == 'db_admin':
-                    return redirect(url_for('admin.index'))
-                elif user.role == 'sec_admin':
-                    return redirect(url_for('security.security'))
-                else:
-                    return redirect(url_for('posts.posts'))
+
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']
                 qr_code_uri, mfa_qr_uri = generate_mfa_qr_uri(user.email, user.mfa_key)
                 flash(f'MFA is not enabled for your account. Please set up MFA to proceed. You have {attempts_left} attempts remaining.', 'warning')
                 return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key, mfa_qr_uri=mfa_qr_uri))
+
+        # Update user log with login details
+        if user.log:
+            user.log.previous_login = user.log.latest_login
+            user.log.latest_login = datetime.now()
+            user.log.previous_ip = user.log.latest_ip
+            user.log.latest_ip = request.remote_addr
+            db.session.commit()
+
+        # Redirect based on user role
+        if user.role == 'db_admin':
+            return redirect(url_for('admin.index'))
+        elif user.role == 'sec_admin':
+            return redirect(url_for('security.security'))
+        else:  # Default for 'end_user'
+            return redirect(url_for('posts.posts'))
 
         # Check if the number of attempts has reached the limit
         attempts_left = 3 - session['failed_attempts']
@@ -167,26 +183,6 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'success')
     return redirect(url_for('accounts.login'))
-
-
-@accounts_bp.before_request
-def restrict_access():
-    # Restrict anonymous users
-    if not current_user.is_authenticated:
-        restricted_routes_anonymous = [
-            'accounts.account', 'posts.posts', 'posts.create',
-            'posts.update', 'posts.delete', 'accounts.logout', 'security.security'
-        ]
-        if request.endpoint in restricted_routes_anonymous:
-            flash("You must be logged in to access this page.", "danger")
-            return redirect(url_for('accounts.login'))
-
-    # Restrict authenticated users
-    if current_user.is_authenticated:
-        restricted_routes_authenticated = ['accounts.registration', 'accounts.login']
-        if request.endpoint in restricted_routes_authenticated:
-            flash("You are already logged in.", "danger")
-            return redirect(url_for('posts.posts'))
 
 
 @accounts_bp.app_errorhandler(403)
