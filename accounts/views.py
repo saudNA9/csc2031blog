@@ -38,10 +38,9 @@ def generate_mfa_qr_uri(email, mfa_key):
 @accounts_bp.route('/registration', methods=['GET', 'POST'])
 def registration():
     form = RegistrationForm()
+
     if current_user.is_authenticated:
         flash("You are already logged in.", "danger")
-
-        # Redirect based on user role
         if current_user.role == 'db_admin':
             return redirect(url_for('admin.index'))
         elif current_user.role == 'sec_admin':
@@ -86,6 +85,17 @@ def registration():
 @limiter.limit("20 per minute")  # Apply a rate limit of 20 per minute
 def login():
     form = LoginForm()
+
+    # Check if the user is already logged in
+    if current_user.is_authenticated:
+        flash("You are already logged in.", "danger")
+        # Redirect based on the user's role
+        if current_user.role == 'db_admin':
+            return redirect(url_for('admin.index'))
+        elif current_user.role == 'sec_admin':
+            return redirect(url_for('security.security'))
+        else:  # Default for 'end_user'
+            return redirect(url_for('posts.posts'))
 
     if 'failed_attempts' not in session:
         session['failed_attempts'] = 0

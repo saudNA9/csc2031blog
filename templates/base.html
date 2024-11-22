@@ -33,6 +33,25 @@
         <a class="nav-item nav-link" href="{{ url_for('security.security') }}">Security</a>
         <a class="nav-item nav-link" href="http://127.0.0.1:5000/admin">DB Admin</a>
     </nav>
+
+    <!-- Flash Messages Section -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container mt-4">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <div class="me-auto">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-2" data-bs-dismiss="alert" aria-label="Close">
+                        ✖
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
     <div class="container-fluid p-3 my-5 text-center">
         {% block content %}
             <!-- The content of any template extending the base template will be embedded in this block -->
