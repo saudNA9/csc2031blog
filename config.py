@@ -1,3 +1,5 @@
+import logging
+
 from flask import Flask, url_for, redirect, flash, abort
 from flask_admin import Admin, AdminIndexView, expose  # Added expose for custom views
 from flask_admin.contrib.sqla import ModelView
@@ -41,6 +43,21 @@ metadata = MetaData(
 
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
+
+
+security_logger = logging.getLogger("security_logger")
+security_logger.setLevel(logging.INFO)
+
+# Create a handler for writing logs to `security.log`
+file_handler = logging.FileHandler("security.log")
+file_handler.setLevel(logging.INFO)
+
+# Define the log format
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handler to the logger
+security_logger.addHandler(file_handler)
 
 # DATABASE TABLES
 class Post(db.Model):
@@ -148,6 +165,7 @@ class MyAdminIndexView(AdminIndexView):
         return redirect(url_for('accounts.login'))
 
 class PostView(ModelView):
+    column_list = ('id', 'created', 'title', 'body', 'userid')
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 

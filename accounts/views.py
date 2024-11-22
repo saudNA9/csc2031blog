@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, session, request, make_response
 from accounts.forms import RegistrationForm, LoginForm
-from config import User, db, Post, limiter
+from config import User, db, Post, limiter, security_logger
 import pyotp
 import logging
 import qrcode
@@ -75,6 +75,9 @@ def registration():
 
         # Generate QR code URI for TOTP
         qr_code_uri, mfa_qr_uri = generate_mfa_qr_uri(new_user.email, mfa_key)
+        security_logger.info(
+            f"User registration: Email={new_user.email}, Role={new_user.role}, IP={request.remote_addr}"
+        )
         flash('Account created successfully. Please set up MFA before logging in.', category='success')
         return redirect(url_for('accounts.mfa_setup', mfa_key=mfa_key, mfa_qr_uri=mfa_qr_uri))
 
@@ -109,6 +112,9 @@ def login():
         if not user or not user.verify_password(form.password.data):
             session['failed_attempts'] += 1
             attempts_left = 3 - session['failed_attempts']
+            security_logger.warning(
+                f"Invalid login attempt: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
+            )
             flash(f'Invalid email or password. You have {attempts_left} attempts remaining.', 'danger')
             return redirect(url_for('accounts.login'))
 
@@ -119,6 +125,7 @@ def login():
             if totp.verify(form.mfa_pin.data):
                 login_user(user)
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
+                security_logger.info(f"User login: Email={user.email}, Role={user.role}, IP={request.remote_addr}")
                 flash('Login successful', 'success')
 
             else:
@@ -161,6 +168,9 @@ def login():
         # Check if the number of attempts has reached the limit
         attempts_left = 3 - session['failed_attempts']
         if session['failed_attempts'] >= 3:
+            security_logger.error(
+                f"Max invalid login attempts: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
+            )
             flash('Your account is locked due to too many failed login attempts.', 'danger')
             return redirect(url_for('accounts.unlock_account'))
         else:
