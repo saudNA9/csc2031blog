@@ -92,7 +92,6 @@ def login():
     # Check if the user is already logged in
     if current_user.is_authenticated:
         flash("You are already logged in.", "danger")
-        # Redirect based on the user's role
         if current_user.role == 'db_admin':
             return redirect(url_for('admin.index'))
         elif current_user.role == 'sec_admin':
@@ -100,18 +99,31 @@ def login():
         else:  # Default for 'end_user'
             return redirect(url_for('posts.posts'))
 
+    # Initialize failed attempts in session if not already present
     if 'failed_attempts' not in session:
         session['failed_attempts'] = 0
 
+    # Check if the account is locked
     is_locked = session['failed_attempts'] >= 3
 
     if form.validate_on_submit() and not is_locked:
         user = User.query.filter_by(email=form.email.data).first()
 
-        # Validate user credentials
+        # Handle invalid credentials
         if not user or not user.verify_password(form.password.data):
             session['failed_attempts'] += 1
             attempts_left = 3 - session['failed_attempts']
+
+            # Check if account is now locked
+            if session['failed_attempts'] >= 3:
+                # Log the lock event
+                security_logger.error(
+                    f"Max invalid login attempts: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
+                )
+                flash('Your account is locked due to too many failed login attempts.', 'danger')
+                return redirect(url_for('accounts.login'))  # Redirect back to login for locked account
+
+            # Log invalid login attempt
             security_logger.warning(
                 f"Invalid login attempt: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
             )
@@ -120,28 +132,26 @@ def login():
 
         totp = pyotp.TOTP(user.mfa_key)
 
-        # If MFA is enabled, verify MFA PIN
+        # Handle MFA if enabled
         if user.mfa_enabled:
             if totp.verify(form.mfa_pin.data):
                 login_user(user)
                 session['failed_attempts'] = 0  # Reset failed attempts on successful login
                 security_logger.info(f"User login: Email={user.email}, Role={user.role}, IP={request.remote_addr}")
                 flash('Login successful', 'success')
-
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']
                 flash(f'Invalid MFA PIN. You have {attempts_left} attempts remaining.', 'danger')
                 return redirect(url_for('accounts.login'))
         else:
-            # If MFA is not enabled, verify MFA PIN and enable MFA
+            # Enable MFA if not already enabled
             if totp.verify(form.mfa_pin.data):
                 user.mfa_enabled = True
                 db.session.commit()
-                session['failed_attempts'] = 0  # Reset failed attempts on successful login
-                login_user(user)  # Log in the user immediately after MFA setup
+                session['failed_attempts'] = 0  # Reset failed attempts
+                login_user(user)
                 flash('MFA setup complete. You are now logged in.', 'success')
-
             else:
                 session['failed_attempts'] += 1
                 attempts_left = 3 - session['failed_attempts']
@@ -162,21 +172,10 @@ def login():
             return redirect(url_for('admin.index'))
         elif user.role == 'sec_admin':
             return redirect(url_for('security.security'))
-        else:  # Default for 'end_user'
+        else:
             return redirect(url_for('posts.posts'))
 
-        # Check if the number of attempts has reached the limit
-        attempts_left = 3 - session['failed_attempts']
-        if session['failed_attempts'] >= 3:
-            security_logger.error(
-                f"Max invalid login attempts: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
-            )
-            flash('Your account is locked due to too many failed login attempts.', 'danger')
-            return redirect(url_for('accounts.unlock_account'))
-        else:
-            flash(f'Invalid email, password, or MFA PIN. Attempts remaining: {attempts_left}', 'danger')
-
-    return render_template('accounts/login.html', form=form, is_locked=is_locked)
+    return render_template('accounts/login.html', form=form, is_locked=is_locked)  # Render the login page
 
 
 @accounts_bp.route('/mfa_setup/<mfa_key>')
