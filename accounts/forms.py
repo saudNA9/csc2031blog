@@ -39,7 +39,7 @@ class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     mfa_pin = StringField('MFA PIN', validators=[DataRequired()])  # Add MFA PIN field
-    recaptcha = RecaptchaField()  # Add reCAPTCHA field here
+    #recaptcha = RecaptchaField()  # Add reCAPTCHA field here
     submit = SubmitField('Login')
 
 class MFACodeForm(FlaskForm):
