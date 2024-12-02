@@ -13,9 +13,9 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import pyotp  # For generating and verifying MFA keys
 from flask_login import UserMixin, current_user, login_required  # Ensures login_required is available
-
+from flask_bcrypt import Bcrypt
 app = Flask(__name__)
-
+bcrypt = Bcrypt(app)
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 
@@ -88,7 +88,7 @@ class User(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     firstname = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
@@ -106,13 +106,17 @@ class User(db.Model, UserMixin):
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
-        self.password = password
+        self.password = self.hash_password(password)
         self.mfa_key = mfa_key
         self.mfa_enabled = mfa_enabled
         self.role = role
 
+    @staticmethod
+    def hash_password(password):
+        return bcrypt.generate_password_hash(password).decode('utf-8')
+
     def verify_password(self, password):
-        return self.password == password  # Simple password comparison (not hashed)
+        return bcrypt.check_password_hash(self.password, password)
 
     def verify_mfa(self, mfa_pin):
         if not self.mfa_key:
