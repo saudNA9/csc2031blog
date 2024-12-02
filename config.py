@@ -1,17 +1,15 @@
-import logging
-
+import logging, base64, os, secrets, pyotp
+from cryptography.fernet import Fernet
 from flask import Flask, url_for, redirect, flash, abort
 from flask_admin import Admin, AdminIndexView, expose  # Added expose for custom views
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
-import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import MetaData
 from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import pyotp  # For generating and verifying MFA keys
 from flask_login import UserMixin, current_user, login_required  # Ensures login_required is available
 from flask_bcrypt import Bcrypt
 app = Flask(__name__)
@@ -66,20 +64,34 @@ class Post(db.Model):
    id = db.Column(db.Integer, primary_key=True)
    userid = db.Column(db.Integer, db.ForeignKey('users.id'))
    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-   title = db.Column(db.Text, nullable=False)
-   body = db.Column(db.Text, nullable=False)
+   title_encrypted = db.Column(db.LargeBinary, nullable=False)
+   body_encrypted = db.Column(db.LargeBinary, nullable=False)
    user = db.relationship("User", back_populates="posts")
 
-   def __init__(self, title, body, userid):
+   def __init__(self, title, body, userid, encryption_key):
        self.created = datetime.now()
-       self.title = title
-       self.body = body
+       self.title_encrypted = self.encrypt(title, encryption_key)
+       self.body_encrypted = self.encrypt(body, encryption_key)
        self.userid = userid
 
-   def update(self, title, body):
+   @staticmethod
+   def derive_key(salt):
+       return base64.urlsafe_b64encode(salt.encode('utf-8').ljust(32)[:32])
+
+   @staticmethod
+   def encrypt(data, key):
+       fernet = Fernet(key)
+       return fernet.encrypt(data.encode('utf-8'))
+
+   @staticmethod
+   def decrypt(data, key):
+       fernet = Fernet(key)
+       return fernet.decrypt(data).decode('utf-8')
+
+   def update(self, title, body, encryption_key):
        self.created = datetime.now()  # Update created time
-       self.title = title  # Update title
-       self.body = body  # Update body
+       self.title_encrypted = self.encrypt(title, encryption_key)
+       self.body_encrypted = self.encrypt(body, encryption_key)
        db.session.commit()  # Commit changes to the database
 
 # User table modified to handle MFA key and MFA enabled status
@@ -93,10 +105,12 @@ class User(db.Model, UserMixin):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
     mfa_key = db.Column(db.String(32), nullable=False, default='')  # Store MFA key
+    salt = db.Column(db.String(44), nullable=False,default=lambda: base64.urlsafe_b64encode(os.urandom(32)).decode('utf-8'))
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
     role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
     log = db.relationship("Log", uselist=False, back_populates="user")
+    is_deleted = db.Column(db.Boolean, nullable=False, default=False)
 
     def get_id(self):
         return str(self.id)
@@ -169,7 +183,11 @@ class MyAdminIndexView(AdminIndexView):
         return redirect(url_for('accounts.login'))
 
 class PostView(ModelView):
-    column_list = ('id', 'created', 'title', 'body', 'userid')
+    column_list = ('id', 'userid', 'created', 'title_encrypted', 'body_encrypted')
+    column_formatters = {
+        'title_encrypted': lambda view, context, model, name: model.title_encrypted.decode('utf-8'),
+        'body_encrypted': lambda view, context, model, name: model.body_encrypted.decode('utf-8'),
+    }
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 

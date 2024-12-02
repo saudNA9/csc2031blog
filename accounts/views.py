@@ -214,5 +214,21 @@ def forbidden_error(e):
 @login_required
 def account():
     user = current_user  # Get the logged-in user
-    user_posts = Post.query.filter_by(userid=user.id).all()  # Adjust column name to 'userid'
+    encryption_key = Post.derive_key(user.salt)  # Derive the encryption key for the user
+
+    # Fetch and decrypt the user's posts
+    user_posts = []
+    posts_query = Post.query.filter_by(userid=user.id).all()
+    for post in posts_query:
+        try:
+            decrypted_post = {
+                "id": post.id,
+                "title": Post.decrypt(post.title_encrypted, encryption_key),
+                "body": Post.decrypt(post.body_encrypted, encryption_key),
+                "created": post.created,
+            }
+            user_posts.append(decrypted_post)
+        except Exception as e:
+            print(f"Failed to decrypt post ID {post.id}: {e}")
+
     return render_template('accounts/account.html', user=user, posts=user_posts)

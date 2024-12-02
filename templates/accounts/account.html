@@ -12,20 +12,23 @@
 
     <h3>Posts Created</h3>
     <div class="post-container">
-        {% for post in posts %}
-            <div class="post-card">
-                <h4>{{ post.title }}</h4>
-                <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
-                <p>Posted by: {{ user.firstname }} {{ user.lastname }}</p>
-                <div class="post-body">
-                    <p>{{ post.body }}</p> <!-- Displays the full post content -->
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post-card">
+                    <h4>{{ post.title }}</h4>
+                    <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
+                    <div class="post-body">
+                        <p>{{ post.body }}</p> <!-- Displays the full decrypted post content -->
+                    </div>
+                    <div class="post-actions">
+                        <a href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                        <a href="{{ url_for('posts.delete', id=post.id) }}" style="color: red;">Delete</a>
+                    </div>
                 </div>
-                <div class="post-actions">
-                    <a href="{{ url_for('posts.update', id=post.id) }}">Update</a>
-                    <a href="{{ url_for('posts.delete', id=post.id) }}" style="color: red;">Delete</a>
-                </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>No posts available.</p>
+        {% endif %}
     </div>
 {% else %}
     <p>You must be logged in to view account details.</p>
