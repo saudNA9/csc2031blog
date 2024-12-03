@@ -30,7 +30,8 @@
                             <!-- Email Field -->
                             <div class="form-group">
                                 {{ form.email.label }}<span style="color: red">*</span>
-                                {{ form.email(class="form-control") }}
+                                {{ form.email(class="form-control", oninput="validateEmail()") }}
+                                <small id="email-error" class="text-danger"></small>
                                 {% for error in form.email.errors %}
                                     <small class="text-danger">{{ error }}</small>
                                 {% endfor %}
@@ -39,7 +40,8 @@
                             <!-- Firstname Field -->
                             <div class="form-group">
                                 {{ form.firstname.label }}<span style="color: red">*</span>
-                                {{ form.firstname(class="form-control") }}
+                                {{ form.firstname(class="form-control", oninput="validateName('firstname', 'firstname-error')") }}
+                                <small id="firstname-error" class="text-danger"></small>
                                 {% for error in form.firstname.errors %}
                                     <small class="text-danger">{{ error }}</small>
                                 {% endfor %}
@@ -48,7 +50,8 @@
                             <!-- Lastname Field -->
                             <div class="form-group">
                                 {{ form.lastname.label }}<span style="color: red">*</span>
-                                {{ form.lastname(class="form-control") }}
+                                {{ form.lastname(class="form-control", oninput="validateName('lastname', 'lastname-error')") }}
+                                <small id="lastname-error" class="text-danger"></small>
                                 {% for error in form.lastname.errors %}
                                     <small class="text-danger">{{ error }}</small>
                                 {% endfor %}
@@ -57,7 +60,8 @@
                             <!-- Phone Field -->
                             <div class="form-group">
                                 {{ form.phone.label }}<span style="color: red">*</span>
-                                {{ form.phone(class="form-control") }}
+                                {{ form.phone(class="form-control", oninput="validatePhone()") }}
+                                <small id="phone-error" class="text-danger"></small>
                                 {% for error in form.phone.errors %}
                                     <small class="text-danger">{{ error }}</small>
                                 {% endfor %}
@@ -102,8 +106,29 @@
 
     </div>
 
-    <!-- JavaScript for Password Strength Feedback -->
+    <!-- JavaScript for Input Validation -->
     <script>
+        function validateEmail() {
+            const email = document.querySelector('input[name="email"]').value;
+            const emailError = document.getElementById('email-error');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            emailError.textContent = emailRegex.test(email) ? '' : 'Enter a valid email address.';
+        }
+
+        function validateName(fieldName, errorId) {
+            const name = document.querySelector(`input[name="${fieldName}"]`).value;
+            const nameError = document.getElementById(errorId);
+            const nameRegex = /^[A-Za-z\-]+$/;
+            nameError.textContent = nameRegex.test(name) ? '' : 'Name can only contain letters and hyphens.';
+        }
+
+        function validatePhone() {
+            const phone = document.querySelector('input[name="phone"]').value;
+            const phoneError = document.getElementById('phone-error');
+            const phoneRegex = /^(02\d-\d{8}|011\d-\d{7}|01\d{3}-\d{5,6})$/;
+            phoneError.textContent = phoneRegex.test(phone) ? '' : 'Enter a valid UK landline number with a hyphen.';
+        }
+
         function checkPasswordStrength() {
             const password = document.getElementById("password").value;
             const lengthRequirement = document.getElementById("length-requirement");

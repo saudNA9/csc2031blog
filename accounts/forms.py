@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, EqualTo, ValidationError
+from wtforms.validators import DataRequired, EqualTo, ValidationError, Regexp, Email
 import re
 
 # Custom password validator to enforce password strength rules
@@ -22,10 +22,23 @@ def strong_password(form, field):
         raise ValidationError(', '.join(errors))
 
 class RegistrationForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired()])
-    firstname = StringField('First Name', validators=[DataRequired()])
-    lastname = StringField('Last Name', validators=[DataRequired()])
-    phone = StringField('Phone', validators=[DataRequired()])
+    firstname = StringField('First Name', validators=[
+        DataRequired(),
+        Regexp(r'^[a-zA-Z-]+$', message="First name can only contain letters or hyphens.")
+    ])
+    lastname = StringField('Last Name', validators=[
+        DataRequired(),
+        Regexp(r'^[a-zA-Z-]+$', message="Last name can only contain letters or hyphens.")
+    ])
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email(message="Enter a valid email address.")
+    ])
+    phone = StringField('Phone Number', validators=[
+        DataRequired(),
+        Regexp(r'^(02\d-\d{8}|011\d-\d{7}|01\d{2}-\d{5,6})$',
+               message="Enter a valid UK landline phone number (e.g., 011X-YYYYYYY).")
+    ])
 
     # Adding strong password validator to the password field
     password = PasswordField('Password', validators=[DataRequired(), strong_password])
