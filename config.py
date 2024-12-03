@@ -12,22 +12,29 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import UserMixin, current_user, login_required  # Ensures login_required is available
 from flask_bcrypt import Bcrypt
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
-# SECRET KEY FOR FLASK FORMS
-app.config['SECRET_KEY'] = secrets.token_hex(16)
 
-# Add reCAPTCHA keys to the configuration
-#app.config['RECAPTCHA_PUBLIC_KEY'] = '6LdgyVUqAAAAAOlpHkzRlx7dr2F0SYp3QTp5Mo96'
-#app.config['RECAPTCHA_PRIVATE_KEY'] = '6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd'
+# SECRET KEY FOR FLASK FORMS (from .env)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-# DATABASE CONFIGURATION
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# FLUID LAYOUT FOR ADMIN PAGES
-app.config['FLASK_ADMIN_FLUID_LAYOUT'] = True  # This enables fluid layout for Flask-Admin pages
+# reCAPTCHA keys (from .env)
+#app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
+#app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
+
+# DATABASE CONFIGURATION (from .env)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_ECHO'] = os.getenv('SQLALCHEMY_ECHO') == 'True'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS') == 'True'
+
+# FLUID LAYOUT FOR ADMIN PAGES (from .env)
+app.config['FLASK_ADMIN_FLUID_LAYOUT'] = os.getenv('FLASK_ADMIN_FLUID_LAYOUT') == 'True'
 
 metadata = MetaData(
     naming_convention={
