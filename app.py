@@ -9,10 +9,11 @@ login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to th
 
 # Define WAF rules using regex patterns
 waf_rules = {
-    "SQL Injection": re.compile(r"(union|select|insert|drop|alter|;|`|')", re.IGNORECASE),
+    "SQL Injection": re.compile(r"(\b(union|select|insert|drop|alter)\b|;|%3B|`|%60|'|%27|--)", re.IGNORECASE),
     "XSS": re.compile(r"(<script>|<iframe>|%3Cscript%3E|%3Ciframe%3E)", re.IGNORECASE),
     "Path Traversal": re.compile(r"(\.\./|\.\.|%2e%2e%2f|%2e%2e/|\.\.%2f)", re.IGNORECASE)
 }
+
 
 # Define the user loader callback
 @login_manager.user_loader
@@ -52,7 +53,7 @@ def not_implemented_error(e):
 @app.before_request
 def restrict_access_and_waf_function_name():
     # Exclude specific routes from WAF and access restrictions
-    excluded_routes = ['firewall_error', 'static']  # Add 'static' if you serve static files
+    excluded_routes = ['firewall_error', 'static']
     if request.endpoint in excluded_routes:
         return  # Skip the check for these routes
 
@@ -65,15 +66,18 @@ def restrict_access_and_waf_function_name():
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
 
-    # Combine path, query string, and headers for inspection
+    # Inspect only path and query string
     path = request.path
     query = request.query_string.decode("utf-8")
-    headers = " ".join([f"{key}: {value}" for key, value in request.headers.items()])
-    combined_request_data = f"{path} {query} {headers}"
+    combined_request_data = f"{path} {query}"
+
+    # Log the data being checked for debugging
+    print(f"Combined Request Data: {combined_request_data}")
 
     # Check WAF rules
     for attack_type, pattern in waf_rules.items():
         if pattern.search(combined_request_data):
+            print(f"Detected Attack Type: {attack_type} | Data: {combined_request_data}")
             flash(f"Attack detected: {attack_type}", "danger")
             return redirect(url_for('firewall_error', attack_type=attack_type))
 
