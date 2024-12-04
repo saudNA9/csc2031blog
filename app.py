@@ -20,6 +20,23 @@ def index():
 def ratelimit_error(e):
     return render_template('errors/rate_limit.html'), 429
 
+@app.errorhandler(400)
+def bad_request_error(e):
+    return render_template('errors/400.html'), 400
+
+@app.errorhandler(404)
+def not_found_error(e):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(501)
+def not_implemented_error(e):
+    return render_template('errors/501.html'), 501
+
+
 @app.before_request
 def restrict_access():
     # Restrict anonymous users
