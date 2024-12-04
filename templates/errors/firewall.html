@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4 text-danger">Firewall Alert</h1>
+    <p class="lead">An attack attempt has been detected and blocked.</p>
+    <p><strong>Type of Attack:</strong> {{ attack_type }}</p>
+    <a href="/" class="btn btn-primary">Return to Home</a>
+</div>
+{% endblock %}

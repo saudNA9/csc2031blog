@@ -1,10 +1,18 @@
 from config import app, User  # Ensure User is imported from your models
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, current_user
+import re
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to the login page
+
+# Define WAF rules using regex patterns
+waf_rules = {
+    "SQL Injection": re.compile(r"(union|select|insert|drop|alter|;|`|')", re.IGNORECASE),
+    "XSS": re.compile(r"(<script>|<iframe>|%3Cscript%3E|%3Ciframe%3E)", re.IGNORECASE),
+    "Path Traversal": re.compile(r"(\.\./|\.\.|%2e%2e%2f|%2e%2e/|\.\.%2f)", re.IGNORECASE)
+}
 
 # Define the user loader callback
 @login_manager.user_loader
@@ -14,6 +22,11 @@ def load_user(user_id):
 @app.route('/')
 def index():
     return render_template('home/index.html')
+
+@app.route('/firewall_error')
+def firewall_error():
+    attack_type = request.args.get('attack_type', 'Unknown')
+    return render_template('errors/firewall.html', attack_type=attack_type)
 
 # Error handling function for rate limit breaches
 @app.errorhandler(429)
@@ -36,10 +49,13 @@ def internal_server_error(e):
 def not_implemented_error(e):
     return render_template('errors/501.html'), 501
 
-
 @app.before_request
-def restrict_access():
-    # Restrict anonymous users
+def restrict_access_and_waf_function_name():
+    # Exclude specific routes from WAF and access restrictions
+    excluded_routes = ['firewall_error', 'static']  # Add 'static' if you serve static files
+    if request.endpoint in excluded_routes:
+        return  # Skip the check for these routes
+
     if not current_user.is_authenticated:
         restricted_routes_anonymous = [
             'accounts.account', 'posts.posts', 'posts.create',
@@ -48,5 +64,18 @@ def restrict_access():
         if request.endpoint in restricted_routes_anonymous:
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
+
+    # Combine path, query string, and headers for inspection
+    path = request.path
+    query = request.query_string.decode("utf-8")
+    headers = " ".join([f"{key}: {value}" for key, value in request.headers.items()])
+    combined_request_data = f"{path} {query} {headers}"
+
+    # Check WAF rules
+    for attack_type, pattern in waf_rules.items():
+        if pattern.search(combined_request_data):
+            flash(f"Attack detected: {attack_type}", "danger")
+            return redirect(url_for('firewall_error', attack_type=attack_type))
+
 if __name__ == '__main__':
     app.run(debug=True)
