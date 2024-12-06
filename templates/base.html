@@ -31,7 +31,8 @@
         <a class="nav-item nav-link" href="{{ url_for('posts.posts') }}">View Posts</a>
         <a class="nav-item nav-link" href="{{ url_for('posts.create') }}">Create Post</a>
         <a class="nav-item nav-link" href="{{ url_for('security.security') }}">Security</a>
-        <a class="nav-item nav-link" href="http://127.0.0.1:5000/admin">DB Admin</a>
+        <a class="nav-item nav-link" href="{{ url_for('admin.index', _scheme='https', _external=True) }}">DB Admin</a>
+
     </nav>
 
     <!-- Flash Messages Section -->

@@ -82,4 +82,4 @@ def restrict_access_and_waf_function_name():
             return redirect(url_for('firewall_error', attack_type=attack_type))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+  app.run(ssl_context=('certificate.crt', 'private.key'), debug=True)
