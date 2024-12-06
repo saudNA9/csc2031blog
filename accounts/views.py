@@ -93,6 +93,7 @@ def login():
     if current_user.is_authenticated:
         flash("You are already logged in.", "danger")
         if current_user.role == 'db_admin':
+            # Redirect to admin page over HTTPS
             return redirect(url_for('admin.index', _scheme='https', _external=True))
         elif current_user.role == 'sec_admin':
             return redirect(url_for('security.security'))
