@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Regexp, Email
 import re
-
+import email_validator
 # Custom password validator to enforce password strength rules
 def strong_password(form, field):
     password = field.data

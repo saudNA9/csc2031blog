@@ -195,6 +195,11 @@ class PostView(ModelView):
         'title_encrypted': lambda view, context, model, name: model.title_encrypted.decode('utf-8'),
         'body_encrypted': lambda view, context, model, name: model.body_encrypted.decode('utf-8'),
     }
+
+    can_edit = False
+    can_create = False
+    can_delete = False
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 

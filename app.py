@@ -2,10 +2,42 @@ from config import app, User  # Ensure User is imported from your models
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, current_user
 import re
+from flask_talisman import Talisman
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to the login page
+
+
+# Define a customized Content Security Policy (CSP)
+csp = {
+    # Trusted sources for JavaScript
+    'script-src': [
+        "'self'",
+        "https://cdn.jsdelivr.net/npm/bootstrap@",  # Bootstrap JS
+        "https://code.jquery.com/",  # jQuery
+        "https://www.google.com/recaptcha/",  # Google reCAPTCHA
+        "https://www.gstatic.com/recaptcha/"
+    ],
+    # Trusted sources for styles
+    'style-src': [
+        "'self'",
+        "'unsafe-inline'",  # For inline styles
+        "https://cdn.jsdelivr.net/npm/bootstrap@"  # Bootstrap CSS
+    ],
+    # Default policy for other resources
+    'default-src': ["'self'"],
+    # Trusted sources for images
+    'img-src': [
+        "'self'",
+        "data:",
+        "https://www.gstatic.com/"
+    ],
+    # Trusted sources for frames
+    'frame-src': [
+        "https://www.google.com/recaptcha/"
+    ]
+}
 
 # Define WAF rules using regex patterns
 waf_rules = {
