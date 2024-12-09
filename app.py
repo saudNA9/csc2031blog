@@ -8,36 +8,36 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to the login page
 
-
-# Define a customized Content Security Policy (CSP)
 csp = {
-    # Trusted sources for JavaScript
-    'script-src': [
-        "'self'",
-        "https://cdn.jsdelivr.net/npm/bootstrap@",  # Bootstrap JS
-        "https://code.jquery.com/",  # jQuery
-        "https://www.google.com/recaptcha/",  # Google reCAPTCHA
-        "https://www.gstatic.com/recaptcha/"
+    "default-src": ["'self'"],  # Restrict all resources by default to the same origin.
+
+    "script-src": [
+        "'self'",  # Allow inline and local scripts.
+        "'unsafe-inline'",
+        "https://www.google.com/recaptcha/",  # Allow Google reCAPTCHA resources.
+        "https://www.gstatic.com/recaptcha/",  # Allow Google reCAPTCHA scripts.
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/",  # Bootstrap JS.
+        "https://code.jquery.com/"  # Allow jQuery (if used).
     ],
-    # Trusted sources for styles
-    'style-src': [
-        "'self'",
-        "'unsafe-inline'",  # For inline styles
-        "https://cdn.jsdelivr.net/npm/bootstrap@"  # Bootstrap CSS
+
+    "frame-src": [
+        "https://www.google.com/recaptcha/"  # Allow embedding Google reCAPTCHA.
     ],
-    # Default policy for other resources
-    'default-src': ["'self'"],
-    # Trusted sources for images
-    'img-src': [
-        "'self'",
-        "data:",
-        "https://www.gstatic.com/"
+
+    "style-src": [
+        "'self'",  # Allow local styles.
+        "'unsafe-inline'",  # Allow inline styles (necessary for Bootstrap).
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/"  # Allow Bootstrap CSS.
     ],
-    # Trusted sources for frames
-    'frame-src': [
-        "https://www.google.com/recaptcha/"
+
+    "img-src": [
+        "'self'",  # Allow images hosted on the same domain.
+        "data:",  # Allow base64-encoded inline images for QR codes.
+        "https://www.gstatic.com/"  # Allow Google reCAPTCHA images.
     ]
 }
+# Integrate Talisman with the Flask application using the custom CSP
+talisman = Talisman(app, content_security_policy=csp)
 
 # Define WAF rules using regex patterns
 waf_rules = {
