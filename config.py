@@ -69,7 +69,7 @@ class Post(db.Model):
    __tablename__ = 'posts'
 
    id = db.Column(db.Integer, primary_key=True)
-   userid = db.Column(db.Integer, db.ForeignKey('users.id'))
+   userid = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
    title_encrypted = db.Column(db.LargeBinary, nullable=False)
    body_encrypted = db.Column(db.LargeBinary, nullable=False)

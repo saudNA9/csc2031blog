@@ -37,7 +37,7 @@
                             </div>
                             <div class="card-footer">
                                 <!-- Show Update/Delete buttons only for the post owner -->
-                                {% if current_user.is_authenticated and post.user_id == current_user.id %}
+                                {% if current_user.is_authenticated and post.userid == current_user.id %}
                                 <a class="btn btn-primary btn-sm" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
                                 <a class="btn btn-danger btn-sm" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
                                 {% endif %}

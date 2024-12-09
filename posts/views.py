@@ -28,6 +28,7 @@ def posts():
                 "body": Post.decrypt(post.body_encrypted, encryption_key),
                 "created": post.created,
                 "user": post.user,
+                "userid": post.userid
             }
             decrypted_posts.append(decrypted_post)
 
