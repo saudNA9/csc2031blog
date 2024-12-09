@@ -207,6 +207,7 @@ class PostView(ModelView):
         abort(403)
 
 class UserView(ModelView):
+    column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role']
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
