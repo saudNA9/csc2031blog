@@ -69,7 +69,7 @@ class Post(db.Model):
    __tablename__ = 'posts'
 
    id = db.Column(db.Integer, primary_key=True)
-   userid = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+   userid = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
    title_encrypted = db.Column(db.LargeBinary, nullable=False)
    body_encrypted = db.Column(db.LargeBinary, nullable=False)
@@ -116,7 +116,7 @@ class User(db.Model, UserMixin):
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
     role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
-    log = db.relationship("Log", uselist=False, back_populates="user")
+    log = db.relationship("Log", uselist=False, back_populates="user", cascade="all, delete-orphan")
     is_deleted = db.Column(db.Boolean, nullable=False, default=False)
 
     def get_id(self):
@@ -156,7 +156,7 @@ class Log(db.Model):
     __tablename__ = 'logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
     user_registered = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     latest_login = db.Column(db.DateTime)
     previous_login = db.Column(db.DateTime)
@@ -207,7 +207,12 @@ class PostView(ModelView):
         abort(403)
 
 class UserView(ModelView):
-    column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role']
+    column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role', 'posts']
+    form_excluded_columns = ['posts']  # Prevent editing the posts relationship in forms
+    column_formatters = {
+        'posts': lambda view, context, model, name: ', '.join([str(post.id) for post in model.posts]) if model.posts else 'No Posts'
+    }
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
