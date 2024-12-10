@@ -84,8 +84,7 @@ def not_implemented_error(e):
 
 @app.before_request
 def restrict_access_and_waf_function_name():
-    # Exclude specific routes from WAF and access restrictions
-    excluded_routes = ['firewall_error', 'static']
+    excluded_routes = ['firewall_error', 'static', 'accounts.mfa_setup']
     if request.endpoint in excluded_routes:
         return  # Skip the check for these routes
 
@@ -103,13 +102,14 @@ def restrict_access_and_waf_function_name():
     query = request.query_string.decode("utf-8")
     combined_request_data = f"{path} {query}"
 
-    # Log the data being checked for debugging
+    # Debugging logs
     print(f"Combined Request Data: {combined_request_data}")
 
     # Check WAF rules
     for attack_type, pattern in waf_rules.items():
         if pattern.search(combined_request_data):
-            print(f"Detected Attack Type: {attack_type} | Data: {combined_request_data}")
+            matched_data = pattern.findall(combined_request_data)
+            print(f"Detected Attack Type: {attack_type} | Matched Data: {matched_data}")
             flash(f"Attack detected: {attack_type}", "danger")
             return redirect(url_for('firewall_error', attack_type=attack_type))
 

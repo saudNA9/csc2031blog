@@ -117,7 +117,6 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
     log = db.relationship("Log", uselist=False, back_populates="user", cascade="all, delete-orphan")
-    is_deleted = db.Column(db.Boolean, nullable=False, default=False)
 
     def get_id(self):
         return str(self.id)
@@ -208,10 +207,15 @@ class PostView(ModelView):
 
 class UserView(ModelView):
     column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role', 'posts']
-    form_excluded_columns = ['posts']  # Prevent editing the posts relationship in forms
+    form_excluded_columns = ['posts', 'log']  # Prevent editing the posts relationship in forms
     column_formatters = {
         'posts': lambda view, context, model, name: ', '.join([str(post.id) for post in model.posts]) if model.posts else 'No Posts'
     }
+
+    def on_model_delete(self, model):
+        for post in model.posts:
+            db.session.delete(post)
+        db.session.commit()
 
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'db_admin'
