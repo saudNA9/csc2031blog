@@ -14,7 +14,7 @@ def security():
         abort(403)
 
     # Fetch logs only for active users
-    logs = Log.query.join(User).filter(User.is_deleted == False).all()
+    logs = Log.query.join(User).all()
 
     # Fetch last 10 log entries from the file
     log_entries = []
