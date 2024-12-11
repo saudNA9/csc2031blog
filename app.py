@@ -8,6 +8,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'accounts.login'
 
+# I have implemented Csp as required in the Final Exercise 23
+# I have changed to bootstrap@5.2.2 instead of bootstrap@4.6.2 because I had some styling issues.
 csp = {
     "default-src": ["'self'"],
 
@@ -39,7 +41,7 @@ csp = {
 
 talisman = Talisman(app, content_security_policy=csp)
 
-
+# I have added the waf rules to handle the 3 attacks: 1-SQL Injection 2-XSS 3-Path Traversal
 waf_rules = {
     "SQL Injection": re.compile(r"(\b(union|select|insert|drop|alter)\b|;|%3B|`|%60|'|%27|--)", re.IGNORECASE),
     "XSS": re.compile(r"(<script>|<iframe>|%3Cscript%3E|%3Ciframe%3E)", re.IGNORECASE),
@@ -61,23 +63,23 @@ def firewall_error():
     attack_type = request.args.get('attack_type', 'Unknown')
     return render_template('errors/firewall.html', attack_type=attack_type)
 
-# Error handling function for rate limit breaches
+# I have added this error handling function for rate limit breaches
 @app.errorhandler(429)
 def ratelimit_error(e):
     return render_template('errors/rate_limit.html'), 429
-
+# I have added this error handling function for bad_request_error
 @app.errorhandler(400)
 def bad_request_error(e):
     return render_template('errors/400.html'), 400
-
+# As for this it handles function for not_found_error
 @app.errorhandler(404)
 def not_found_error(e):
     return render_template('errors/404.html'), 404
-
+# I have added this error handling function for internal_server_error
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('errors/500.html'), 500
-
+# Finally added this error handling function for not_implemented_error
 @app.errorhandler(501)
 def not_implemented_error(e):
     return render_template('errors/501.html'), 501
