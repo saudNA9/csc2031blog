@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, flash, url_for, abort, request
+from flask import Blueprint, render_template, flash, abort, request
 from flask_login import login_required, current_user
 from config import Log, User, security_logger
 
@@ -16,7 +16,7 @@ def security():
 
     logs = Log.query.join(User).all()
 
-
+# I did this to show in the security page, the recent 10 security logs
     log_entries = []
     try:
         with open("security.log", "r") as log_file:
