@@ -18,10 +18,10 @@ def posts():
 
     for post in all_posts:
         try:
-
+            # Here I have used the post owner's salt to derive the encryption key
             encryption_key = Post.derive_key(post.user.salt)
 
-
+            # I've added this to decrypt the post
             decrypted_post = {
                 "id": post.id,
                 "title": Post.decrypt(post.title_encrypted, encryption_key),
@@ -33,7 +33,7 @@ def posts():
             decrypted_posts.append(decrypted_post)
 
         except Exception as e:
-
+            # I have did this to log errors for invalid decryption
             print(f"Decryption failed for Post ID {post.id}: {str(e)}")
             flash(f"Unable to decrypt Post ID {post.id}.", "danger")
 
@@ -47,7 +47,7 @@ def create():
         abort(403)
     form = PostForm()
     if form.validate_on_submit():
-
+        # As for this it will derive the encryption key for the current user
         encryption_key = Post.derive_key(current_user.salt)
         new_post = Post(title=form.title.data, body=form.body.data, userid=current_user.id,
                         encryption_key=encryption_key)
