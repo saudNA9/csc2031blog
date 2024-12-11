@@ -1,5 +1,4 @@
-# **README: CSC2031 Assignment, from Exercises 7 to 23**
-
+# **README for CSC2031 Assignment:From Exercise 7 to Exercise 23**
 
 ## **Author**
 - **Name**: Saud Al-Najem
@@ -34,6 +33,9 @@
 - I enforced strict access rules:
   - Anonymous users are blocked from account-related and post creation/update pages.
   - Authenticated users cannot access registration or login pages or modify others' posts.
+
+### **Note**
+- When pressing **Login** or **Registration** while logged in, the user is redirected based on their role instead of being redirected to **View Posts** as required. This decision avoids access issues since `sec_admin` and `db_admin` roles should not access **View Posts**.
 
 ## **Exercise 14: Role-Based Access Control**
 - I added roles (`end_user`, `db_admin`, `sec_admin`) to the `User` model.
@@ -89,5 +91,5 @@
 - Using Flask-Talisman, I added HTTP security headers to enhance security.
 - I switched to Bootstrap 5.2.2 to ensure compatibility with CSP while maintaining styling.
 
----
-This README highlights the key features I implemented from Exercises 7 to 23, showcasing my work on this assignment.
+### **Note**
+- Duplicate flash messages may appear because I added a flash message handler in `base.html`. This was necessary as some flash messages written in the `.py` files using Flask's `flash()` method were not appearing in the templates. Despite trying multiple approaches, this was the most reliable solution to ensure all messages are displayed.
