@@ -1,4 +1,4 @@
-import logging, base64, os, secrets, pyotp
+import logging, base64, os, pyotp
 from cryptography.fernet import Fernet
 from flask import Flask, url_for, redirect, flash, abort
 from flask_admin import Admin, AdminIndexView, expose
@@ -10,17 +10,17 @@ from sqlalchemy import MetaData
 from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import UserMixin, current_user, login_required
+from flask_login import UserMixin, current_user
 from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 
-
+# I have added this line code to load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-
+# I have modified this to align with Ex.19 Requirements
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
 app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
@@ -46,15 +46,15 @@ migrate = Migrate(app, db)
 security_logger = logging.getLogger("security_logger")
 security_logger.setLevel(logging.INFO)
 
-
+# I did this to create a handler for writing logs to `security.log`
 file_handler = logging.FileHandler("security.log")
 file_handler.setLevel(logging.INFO)
 
-
+# This will define the log format
 formatter = logging.Formatter('%(asctime)s - %(message)s')
 file_handler.setFormatter(formatter)
 
-
+# I have added the handler to the logger
 security_logger.addHandler(file_handler)
 
 
@@ -173,10 +173,10 @@ class MyAdminIndexView(AdminIndexView):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-
+        # If the user is authenticated but not authorized, it will show 403(Forbidden)
         if current_user.is_authenticated:
             abort(403)
-
+        # If the user is not authenticated, it will redirect to login page
         flash("You must be logged in to access this page.", "danger")
         return redirect(url_for('accounts.login'))
 
@@ -196,15 +196,15 @@ class PostView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         if not current_user.is_authenticated:
-
+            #This will redirect anonymous users to the login page with a flash message
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
-
         abort(403)
 
 class UserView(ModelView):
     column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role', 'posts']
     form_excluded_columns = ['posts', 'log']
+    # I have made sure that the db admin does not assign posts and only see post in db user as a read mode only
     column_formatters = {
         'posts': lambda view, context, model, name: ', '.join([f"Post {post.id}" for post in model.posts]) if model.posts else 'No Posts'
     }
@@ -219,7 +219,7 @@ class UserView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         if not current_user.is_authenticated:
-
+            # I have redirected anonymous users to the login page with a flash message
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
 
@@ -231,24 +231,24 @@ admin.add_link(MenuLink(name="Home", url='/'))
 admin.add_view(PostView(Post, db.session, name="Posts", endpoint="post"))
 admin.add_view(UserView(User, db.session, name="Users", endpoint="user"))
 
-
+# As for this it is an application-wide rate limiter with a default limit of 500 function calls per day
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
     default_limits=["500 per day"]
 )
 
-
+# This function is made to generate QR code URI for TOTP
 def generate_mfa_qr_uri(email, mfa_key):
     totp = pyotp.TOTP(mfa_key)
     return totp.provisioning_uri(email, issuer_name="CSC2031 Blog")
 
-
+# I have imported BLUEPRINTS at the bottom
 from accounts.views import accounts_bp
 from posts.views import posts_bp
 from security.views import security_bp
 
-
+# Registered BLUEPRINTS
 app.register_blueprint(accounts_bp)
 app.register_blueprint(posts_bp)
 app.register_blueprint(security_bp)
