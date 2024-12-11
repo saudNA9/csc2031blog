@@ -1,5 +1,176 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>CSC2031 Blog</h1>
-    <p> SAUD ('230266960')</p>
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="hero-title">Welcome to CSC2031 Blog</h1>
+        <p class="hero-description">A distinctive space to share knowledge, collaborate, and thrive.</p>
+        <div class="meta-info">
+            <p>Created by: <strong>SAUD (230266960)</strong></p>
+            <p>Module Leader: <strong>Dr. John Mace</strong></p>
+            <p style="font-size: 2rem; font-weight: bold; color: #ffdd57;"> <span id="current-time"></span></p>
+        </div>
+        <div class="cta-section">
+            <a href="https://www.linkedin.com/in/saud-al-najem-7553592a3/" target="_blank" class="cta-button linkedin-button">
+                Connect on LinkedIn
+            </a>
+            <a href="#features" class="cta-button explore-button">Explore Features</a>
+        </div>
+        <div class="inquiry-section mt-4">
+            <p>Have inquiries? Reach out to us directly:</p>
+            <a href="mailto:c3026696@newcastle.ac.uk" class="cta-button email-button">Contact via Email</a>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="features-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="bi bi-lightbulb feature-icon"></i>
+                    <h3>Innovative Ideas</h3>
+                    <p>Stay inspired by engaging blog posts and unique insights.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="bi bi-people feature-icon"></i>
+                    <h3>Community Collaboration</h3>
+                    <p>Connect, learn, and grow with like-minded individuals.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="bi bi-shield feature-icon"></i>
+                    <h3>Secure Platform</h3>
+                    <p>Blog confidently with our secure and reliable system.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="bi bi-gear feature-icon"></i>
+                    <h3>Customizable Features</h3>
+                    <p>Enjoy a platform tailored to your blogging needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(to right, #000428, #004e92);
+    color: #fff;
+    padding: 100px 20px;
+    border-bottom: 5px solid #ffdd57;
+}
+.hero-title {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+.hero-description {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #d4f4f2;
+}
+.meta-info p {
+    font-size: 1.2rem;
+    color: #ffea77;
+}
+.cta-section {
+    margin-top: 30px;
+}
+.cta-button {
+    text-decoration: none;
+    padding: 15px 25px;
+    margin: 10px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.linkedin-button {
+    background-color: #0077b5;
+    color: white;
+}
+.linkedin-button:hover {
+    background-color: #005582;
+    transform: translateY(-3px);
+}
+.explore-button {
+    background-color: #f39c12;
+    color: white;
+}
+.explore-button:hover {
+    background-color: #d68910;
+    transform: translateY(-3px);
+}
+.email-button {
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    padding: 15px 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.email-button:hover {
+    background-color: #218838;
+    transform: translateY(-3px);
+}
+.inquiry-section {
+    margin-top: 40px;
+    font-size: 1.2rem;
+}
+
+/* Features Section */
+.features-section {
+    background: #f7f7f7;
+    padding: 80px 20px;
+}
+.feature-item {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+.feature-icon {
+    font-size: 3rem;
+    color: #004e92;
+    margin-bottom: 10px;
+}
+.feature-item h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.feature-item p {
+    font-size: 1rem;
+    color: #555;
+}
+</style>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+</script>
 {% endblock %}
