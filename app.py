@@ -1,4 +1,4 @@
-from config import app, User  # Ensure User is imported from your models
+from config import app, User
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, current_user
 import re
@@ -6,40 +6,40 @@ from flask_talisman import Talisman
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'accounts.login'  # Redirect unauthorized users to the login page
+login_manager.login_view = 'accounts.login'
 
 csp = {
-    "default-src": ["'self'"],  # Restrict all resources by default to the same origin.
+    "default-src": ["'self'"],
 
     "script-src": [
-        "'self'",  # Allow inline and local scripts.
+        "'self'",
         "'unsafe-inline'",
-        "https://www.google.com/recaptcha/",  # Allow Google reCAPTCHA resources.
-        "https://www.gstatic.com/recaptcha/",  # Allow Google reCAPTCHA scripts.
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/",  # Bootstrap JS.
-        "https://code.jquery.com/"  # Allow jQuery (if used).
+        "https://www.google.com/recaptcha/",
+        "https://www.gstatic.com/recaptcha/",
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/",
+        "https://code.jquery.com/"
     ],
 
     "frame-src": [
-        "https://www.google.com/recaptcha/"  # Allow embedding Google reCAPTCHA.
+        "https://www.google.com/recaptcha/"
     ],
 
     "style-src": [
-        "'self'",  # Allow local styles.
-        "'unsafe-inline'",  # Allow inline styles (necessary for Bootstrap).
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/"  # Allow Bootstrap CSS.
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/"
     ],
 
     "img-src": [
-        "'self'",  # Allow images hosted on the same domain.
-        "data:",  # Allow base64-encoded inline images for QR codes.
-        "https://www.gstatic.com/"  # Allow Google reCAPTCHA images.
+        "'self'",
+        "data:",
+        "https://www.gstatic.com/"
     ]
 }
-# Integrate Talisman with the Flask application using the custom CSP
+
 talisman = Talisman(app, content_security_policy=csp)
 
-# Define WAF rules using regex patterns
+
 waf_rules = {
     "SQL Injection": re.compile(r"(\b(union|select|insert|drop|alter)\b|;|%3B|`|%60|'|%27|--)", re.IGNORECASE),
     "XSS": re.compile(r"(<script>|<iframe>|%3Cscript%3E|%3Ciframe%3E)", re.IGNORECASE),
@@ -47,7 +47,7 @@ waf_rules = {
 }
 
 
-# Define the user loader callback
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -86,7 +86,7 @@ def not_implemented_error(e):
 def restrict_access_and_waf_function_name():
     excluded_routes = ['firewall_error', 'static', 'accounts.mfa_setup']
     if request.endpoint in excluded_routes:
-        return  # Skip the check for these routes
+        return
 
     if not current_user.is_authenticated:
         restricted_routes_anonymous = [
@@ -97,15 +97,15 @@ def restrict_access_and_waf_function_name():
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
 
-    # Inspect only path and query string
+
     path = request.path
     query = request.query_string.decode("utf-8")
     combined_request_data = f"{path} {query}"
 
-    # Debugging logs
+
     print(f"Combined Request Data: {combined_request_data}")
 
-    # Check WAF rules
+
     for attack_type, pattern in waf_rules.items():
         if pattern.search(combined_request_data):
             matched_data = pattern.findall(combined_request_data)

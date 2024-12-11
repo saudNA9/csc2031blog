@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Regexp, Email
 import re
 import email_validator
-# Custom password validator to enforce password strength rules
+
 def strong_password(form, field):
     password = field.data
     errors = []
@@ -40,7 +40,7 @@ class RegistrationForm(FlaskForm):
                message="Enter a valid UK landline phone number (e.g., 011X-YYYYYYY).")
     ])
 
-    # Adding strong password validator to the password field
+
     password = PasswordField('Password', validators=[DataRequired(), strong_password])
 
     confirm_password = PasswordField('Confirm Password',
@@ -51,14 +51,10 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    mfa_pin = StringField('MFA PIN', validators=[DataRequired()])  # Add MFA PIN field
-    #recaptcha = RecaptchaField()  # Add reCAPTCHA field here
+    mfa_pin = StringField('MFA PIN', validators=[DataRequired()])
+    recaptcha = RecaptchaField()
     submit = SubmitField('Login')
 
 class MFACodeForm(FlaskForm):
-    """
-    This form is for users who are setting up MFA manually or scanning a QR code.
-    It asks the user to input their MFA PIN from their authenticator app.
-    """
     mfa_pin = StringField('Enter MFA PIN', validators=[DataRequired()])
     submit = SubmitField('Submit MFA PIN')

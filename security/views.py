@@ -13,15 +13,15 @@ def security():
         )
         abort(403)
 
-    # Fetch logs only for active users
+
     logs = Log.query.join(User).all()
 
-    # Fetch last 10 log entries from the file
+
     log_entries = []
     try:
         with open("security.log", "r") as log_file:
             lines = log_file.readlines()
-            log_entries = lines[-10:][::-1]  # Get last 10 entries and reverse them
+            log_entries = lines[-10:][::-1]
     except FileNotFoundError:
         flash("Security log file not found.", "warning")
 

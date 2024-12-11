@@ -1,7 +1,7 @@
 import logging, base64, os, secrets, pyotp
 from cryptography.fernet import Fernet
 from flask import Flask, url_for, redirect, flash, abort
-from flask_admin import Admin, AdminIndexView, expose  # Added expose for custom views
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_sqlalchemy import SQLAlchemy
@@ -10,30 +10,23 @@ from sqlalchemy import MetaData
 from datetime import datetime
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import UserMixin, current_user, login_required  # Ensures login_required is available
+from flask_login import UserMixin, current_user, login_required
 from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+
 load_dotenv()
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-# SECRET KEY FOR FLASK FORMS (from .env)
+
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
-
-# reCAPTCHA keys (from .env)
-#app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
-#app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
-
-# DATABASE CONFIGURATION (from .env)
+app.config['RECAPTCHA_PUBLIC_KEY'] = os.getenv('RECAPTCHA_PUBLIC_KEY')
+app.config['RECAPTCHA_PRIVATE_KEY'] = os.getenv('RECAPTCHA_PRIVATE_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_ECHO'] = os.getenv('SQLALCHEMY_ECHO') == 'True'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS') == 'False'
-
-# FLUID LAYOUT FOR ADMIN PAGES (from .env)
 app.config['FLASK_ADMIN_FLUID_LAYOUT'] = os.getenv('FLASK_ADMIN_FLUID_LAYOUT') == 'True'
 
 metadata = MetaData(
@@ -53,18 +46,18 @@ migrate = Migrate(app, db)
 security_logger = logging.getLogger("security_logger")
 security_logger.setLevel(logging.INFO)
 
-# Create a handler for writing logs to `security.log`
+
 file_handler = logging.FileHandler("security.log")
 file_handler.setLevel(logging.INFO)
 
-# Define the log format
+
 formatter = logging.Formatter('%(asctime)s - %(message)s')
 file_handler.setFormatter(formatter)
 
-# Add the handler to the logger
+
 security_logger.addHandler(file_handler)
 
-# DATABASE TABLES
+
 class Post(db.Model):
    __tablename__ = 'posts'
 
@@ -96,12 +89,12 @@ class Post(db.Model):
        return fernet.decrypt(data).decode('utf-8')
 
    def update(self, title, body, encryption_key):
-       self.created = datetime.now()  # Update created time
+       self.created = datetime.now()
        self.title_encrypted = self.encrypt(title, encryption_key)
        self.body_encrypted = self.encrypt(body, encryption_key)
-       db.session.commit()  # Commit changes to the database
+       db.session.commit()
 
-# User table modified to handle MFA key and MFA enabled status
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
@@ -111,9 +104,9 @@ class User(db.Model, UserMixin):
     firstname = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
-    mfa_key = db.Column(db.String(32), nullable=False, default='')  # Store MFA key
+    mfa_key = db.Column(db.String(32), nullable=False, default='')
     salt = db.Column(db.String(44), nullable=False,default=lambda: base64.urlsafe_b64encode(os.urandom(32)).decode('utf-8'))
-    mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)  # Track if MFA is enabled
+    mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
     role = db.Column(db.String(50), nullable=False, default='end_user')
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
     log = db.relationship("Log", uselist=False, back_populates="user", cascade="all, delete-orphan")
@@ -140,9 +133,9 @@ class User(db.Model, UserMixin):
 
     def verify_mfa(self, mfa_pin):
         if not self.mfa_key:
-            return False  # Return False if MFA is not set up
+            return False
         totp = pyotp.TOTP(self.mfa_key)
-        return totp.verify(mfa_pin)  # Verify the provided MFA PIN
+        return totp.verify(mfa_pin)
 
     def create_log(self):
         if not self.log:
@@ -168,11 +161,10 @@ class Log(db.Model):
         self.user_registered = datetime.now()
 
 
-# DATABASE ADMINISTRATOR
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
-        # Custom index view for DB Admin
         if not current_user.is_authenticated or current_user.role != 'db_admin':
             abort(403)
         return super().index()
@@ -181,10 +173,10 @@ class MyAdminIndexView(AdminIndexView):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
-        # If the user is authenticated but not authorized, show 403
+
         if current_user.is_authenticated:
             abort(403)
-        # If the user is not authenticated, redirect to login page
+
         flash("You must be logged in to access this page.", "danger")
         return redirect(url_for('accounts.login'))
 
@@ -204,15 +196,15 @@ class PostView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         if not current_user.is_authenticated:
-            # New: Redirect anonymous users to the login page with a flash message
+
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
-        # Default behavior for authenticated users without proper roles
+
         abort(403)
 
 class UserView(ModelView):
     column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role', 'posts']
-    form_excluded_columns = ['posts', 'log']  # Prevent editing the posts relationship in forms
+    form_excluded_columns = ['posts', 'log']
     column_formatters = {
         'posts': lambda view, context, model, name: ', '.join([f"Post {post.id}" for post in model.posts]) if model.posts else 'No Posts'
     }
@@ -227,10 +219,10 @@ class UserView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         if not current_user.is_authenticated:
-            # New: Redirect anonymous users to the login page with a flash message
+
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('accounts.login'))
-        # Default behavior for authenticated users without proper roles
+
         abort(403)
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
@@ -239,24 +231,24 @@ admin.add_link(MenuLink(name="Home", url='/'))
 admin.add_view(PostView(Post, db.session, name="Posts", endpoint="post"))
 admin.add_view(UserView(User, db.session, name="Users", endpoint="user"))
 
-# Application-wide rate limiter with a default limit of 500 function calls per day
+
 limiter = Limiter(
-    key_func=get_remote_address,  # Get the client's IP address
+    key_func=get_remote_address,
     app=app,
-    default_limits=["500 per day"]  # Default rate limit
+    default_limits=["500 per day"]
 )
 
-# Function to generate QR code URI for TOTP (for QR Code setup in Part 2)
+
 def generate_mfa_qr_uri(email, mfa_key):
     totp = pyotp.TOTP(mfa_key)
     return totp.provisioning_uri(email, issuer_name="CSC2031 Blog")
 
-# IMPORT BLUEPRINTS at the bottom
+
 from accounts.views import accounts_bp
 from posts.views import posts_bp
 from security.views import security_bp
 
-# REGISTER BLUEPRINTS
+
 app.register_blueprint(accounts_bp)
 app.register_blueprint(posts_bp)
 app.register_blueprint(security_bp)
