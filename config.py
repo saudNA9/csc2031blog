@@ -185,7 +185,7 @@ class MyAdminIndexView(AdminIndexView):
         if current_user.is_authenticated:
             abort(403)
         # If the user is not authenticated, redirect to login page
-        flash("Please log in to access this page.", "danger")
+        flash("You must be logged in to access this page.", "danger")
         return redirect(url_for('accounts.login'))
 
 class PostView(ModelView):
@@ -203,13 +203,18 @@ class PostView(ModelView):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
+        if not current_user.is_authenticated:
+            # New: Redirect anonymous users to the login page with a flash message
+            flash("You must be logged in to access this page.", "danger")
+            return redirect(url_for('accounts.login'))
+        # Default behavior for authenticated users without proper roles
         abort(403)
 
 class UserView(ModelView):
     column_list = ['id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfa_key', 'salt', 'mfa_enabled', 'role', 'posts']
     form_excluded_columns = ['posts', 'log']  # Prevent editing the posts relationship in forms
     column_formatters = {
-        'posts': lambda view, context, model, name: ', '.join([str(post.id) for post in model.posts]) if model.posts else 'No Posts'
+        'posts': lambda view, context, model, name: ', '.join([f"Post {post.id}" for post in model.posts]) if model.posts else 'No Posts'
     }
 
     def on_model_delete(self, model):
@@ -221,13 +226,18 @@ class UserView(ModelView):
         return current_user.is_authenticated and current_user.role == 'db_admin'
 
     def inaccessible_callback(self, name, **kwargs):
+        if not current_user.is_authenticated:
+            # New: Redirect anonymous users to the login page with a flash message
+            flash("You must be logged in to access this page.", "danger")
+            return redirect(url_for('accounts.login'))
+        # Default behavior for authenticated users without proper roles
         abort(403)
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
 admin._menu = [item for item in admin._menu if item.name != "Home"]
 admin.add_link(MenuLink(name="Home", url='/'))
-admin.add_view(PostView(Post, db.session, name="Posts", endpoint="admin_post"))
-admin.add_view(UserView(User, db.session, name="Users", endpoint="admin_user"))
+admin.add_view(PostView(Post, db.session, name="Posts", endpoint="post"))
+admin.add_view(UserView(User, db.session, name="Users", endpoint="user"))
 
 # Application-wide rate limiter with a default limit of 500 function calls per day
 limiter = Limiter(

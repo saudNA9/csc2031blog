@@ -18,7 +18,8 @@
                                 {% with messages = get_flashed_messages(with_categories=true) %}
                                 {% for category, message in messages %}
                                 <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
-                                    {{ message }}. Go to <a href="{{ url_for('accounts.login') }}">login page</a>.
+                                    {{ message }}.
+                                    <a href="{{ url_for('accounts.login') }}" class="btn btn-success">Go to Login</a>
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
                                         <span>&times;</span>
                                     </button>
