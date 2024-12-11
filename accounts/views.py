@@ -10,24 +10,24 @@ from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
 
 
-
+# I have initialized the logger
 logging.basicConfig(level=logging.INFO)
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 
 
-
+# I have added this function to verify MFA PIN using pyotp
 def verify_mfa_pin(mfa_key, mfa_pin):
     totp = pyotp.TOTP(mfa_key)
     return totp.verify(mfa_pin)
 
 
-
+# As for this function it's there to generate QR code URI and base64 image
 def generate_mfa_qr_uri(email, mfa_key):
     totp = pyotp.TOTP(mfa_key)
     uri = totp.provisioning_uri(name=email, issuer_name="CSC2031 BLOG")
 
-
+    # Here this will generate QR code as an image in base64 format
     qr = qrcode.make(uri)
     buffer = BytesIO()
     qr.save(buffer, format="PNG")
@@ -45,7 +45,7 @@ def registration():
             return redirect(url_for('admin.index'))
         elif current_user.role == 'sec_admin':
             return redirect(url_for('security.security'))
-        else:
+        else:  # this is default for 'end_user'
             return redirect(url_for('posts.posts'))
 
     if form.validate_on_submit():
@@ -53,7 +53,7 @@ def registration():
             flash('Email already exists', category="danger")
             return render_template('accounts/registration.html', form=form)
 
-
+        # I added this to generate an MFA key and QR code URI
         mfa_key = pyotp.random_base32()
         new_user = User(
             email=form.email.data,
@@ -73,7 +73,7 @@ def registration():
         logging.info(f"Registered new user: {new_user.email}, Role: {new_user.role}")
         logging.info(f"MFA Key for {new_user.email} (During Registration): {new_user.mfa_key}")
 
-
+        # This will generate QR code URI for TOTP
         qr_code_uri, mfa_qr_uri = generate_mfa_qr_uri(new_user.email, mfa_key)
         security_logger.info(
             f"User registration: Email={new_user.email}, Role={new_user.role}, IP={request.remote_addr}"
@@ -85,15 +85,15 @@ def registration():
 
 
 @accounts_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("20 per minute")
+@limiter.limit("20 per minute")  # I have added this to apply a rate limit of 20 per minute
 def login():
     form = LoginForm()
 
-
+    # This will check if the user is already logged in, then I customized it to redirect him to the page base on his role
     if current_user.is_authenticated:
         flash("You are already logged in.", "danger")
         if current_user.role == 'db_admin':
-
+            # Redirect to admin page over HTTPS
             return redirect(url_for('admin.index', _scheme='https', _external=True))
         elif current_user.role == 'sec_admin':
             return redirect(url_for('security.security'))
@@ -104,27 +104,27 @@ def login():
     if 'failed_attempts' not in session:
         session['failed_attempts'] = 0
 
-
+    # This will check if the account is locked
     is_locked = session['failed_attempts'] >= 3
 
     if form.validate_on_submit() and not is_locked:
         user = User.query.filter_by(email=form.email.data).first()
 
-
+        # I have handled invalid credentials
         if not user or not user.verify_password(form.password.data):
             session['failed_attempts'] += 1
             attempts_left = 3 - session['failed_attempts']
 
-
+            # made this to check if account is now locked
             if session['failed_attempts'] >= 3:
-
+                # I added this to log the lock event
                 security_logger.error(
                     f"Max invalid login attempts: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
                 )
                 flash('Your account is locked due to too many failed login attempts.', 'danger')
                 return redirect(url_for('accounts.login'))
 
-
+            # As for this I added it to log invalid login attempt
             security_logger.warning(
                 f"Invalid login attempt: Email={form.email.data}, Attempts={session['failed_attempts']}, IP={request.remote_addr}"
             )
@@ -133,7 +133,7 @@ def login():
 
         totp = pyotp.TOTP(user.mfa_key)
 
-
+        # This will handle MFA if enabled
         if user.mfa_enabled:
             if totp.verify(form.mfa_pin.data):
                 login_user(user)
@@ -146,7 +146,7 @@ def login():
                 flash(f'Invalid MFA PIN. You have {attempts_left} attempts remaining.', 'danger')
                 return redirect(url_for('accounts.login'))
         else:
-
+            # As for this it will enable MFA if not already enabled
             if totp.verify(form.mfa_pin.data):
                 user.mfa_enabled = True
                 db.session.commit()
@@ -160,7 +160,7 @@ def login():
                 flash(f'MFA is not enabled for your account. Please set up MFA to proceed. You have {attempts_left} attempts remaining.', 'warning')
                 return redirect(url_for('accounts.mfa_setup', mfa_key=user.mfa_key, mfa_qr_uri=mfa_qr_uri))
 
-
+        # I added this to update user log with login details
         if user.log:
             user.log.previous_login = user.log.latest_login
             user.log.latest_login = datetime.now()
@@ -168,7 +168,7 @@ def login():
             user.log.latest_ip = request.remote_addr
             db.session.commit()
 
-
+        # This will redirect based on user role
         if user.role == 'db_admin':
             return redirect(url_for('admin.index'))
         elif user.role == 'sec_admin':
@@ -217,7 +217,7 @@ def account():
     user = current_user
     encryption_key = Post.derive_key(user.salt)
 
-
+    # This here will fetch and decrypt the user's posts
     user_posts = []
     posts_query = Post.query.filter_by(userid=user.id).all()
     for post in posts_query:
