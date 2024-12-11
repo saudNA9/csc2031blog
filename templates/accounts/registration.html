@@ -28,7 +28,6 @@
                                 {% endwith %}
                             </div>
 
-                            <!-- Email Field -->
                             <div class="form-group">
                                 {{ form.email.label }}<span style="color: red">*</span>
                                 {{ form.email(class="form-control", oninput="validateEmail()") }}
@@ -38,7 +37,6 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Firstname Field -->
                             <div class="form-group">
                                 {{ form.firstname.label }}<span style="color: red">*</span>
                                 {{ form.firstname(class="form-control", oninput="validateName('firstname', 'firstname-error')") }}
@@ -48,7 +46,6 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Lastname Field -->
                             <div class="form-group">
                                 {{ form.lastname.label }}<span style="color: red">*</span>
                                 {{ form.lastname(class="form-control", oninput="validateName('lastname', 'lastname-error')") }}
@@ -58,7 +55,6 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Phone Field -->
                             <div class="form-group">
                                 {{ form.phone.label }}<span style="color: red">*</span>
                                 {{ form.phone(class="form-control", oninput="validatePhone()") }}
@@ -68,7 +64,6 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Password Field with Live Feedback -->
                             <div class="form-group">
                                 {{ form.password.label }}<span style="color: red">*</span>
                                 {{ form.password(class="form-control", id="password", oninput="checkPasswordStrength()") }}
@@ -84,7 +79,6 @@
                                 {% endfor %}
                             </div>
 
-                            <!-- Confirm Password Field with Error Handling -->
                             <div class="form-group">
                                 {{ form.confirm_password.label }}<span style="color: red">*</span>
                                 {{ form.confirm_password(class="form-control") }}
@@ -94,7 +88,6 @@
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
                         <div>
                             {{ form.submit(class="btn btn-success") }}
                         </div>
@@ -107,7 +100,6 @@
 
     </div>
 
-    <!-- JavaScript for Input Validation -->
     <script>
         function validateEmail() {
             const email = document.querySelector('input[name="email"]').value;
@@ -138,7 +130,6 @@
             const digitRequirement = document.getElementById("digit-requirement");
             const specialCharRequirement = document.getElementById("specialchar-requirement");
 
-            // Password length between 8 and 15 characters
             if (password.length >= 8 && password.length <= 15) {
                 lengthRequirement.classList.add("text-success");
                 lengthRequirement.classList.remove("text-danger");
@@ -147,7 +138,6 @@
                 lengthRequirement.classList.remove("text-success");
             }
 
-            // Check for uppercase letter
             if (/[A-Z]/.test(password)) {
                 upperCaseRequirement.classList.add("text-success");
                 upperCaseRequirement.classList.remove("text-danger");
@@ -156,7 +146,6 @@
                 upperCaseRequirement.classList.remove("text-success");
             }
 
-            // Check for lowercase letter
             if (/[a-z]/.test(password)) {
                 lowerCaseRequirement.classList.add("text-success");
                 lowerCaseRequirement.classList.remove("text-danger");
@@ -165,7 +154,6 @@
                 lowerCaseRequirement.classList.remove("text-success");
             }
 
-            // Check for digits
             if (/\d/.test(password)) {
                 digitRequirement.classList.add("text-success");
                 digitRequirement.classList.remove("text-danger");
@@ -174,7 +162,6 @@
                 digitRequirement.classList.remove("text-success");
             }
 
-            // Check for special character
             if (/[^\w\s]/.test(password)) {
                 specialCharRequirement.classList.add("text-success");
                 specialCharRequirement.classList.remove("text-danger");

@@ -7,7 +7,6 @@
             <div class="col-2"></div>
             <div class="col-8">
                 <div class="p-2 bg-light border border-primary" style="text-align: left">
-                    <!-- Flash Messages -->
                     <div>
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% for category, message in messages %}
@@ -21,7 +20,6 @@
                         {% endwith %}
                     </div>
 
-                    <!-- Posts -->
                     {% for post in posts %}
                         <div class="card border border-dark mb-3">
                             <div class="card-header bg-dark text-white">
@@ -36,7 +34,6 @@
                                 <p>{{ post.body }}</p>
                             </div>
                             <div class="card-footer">
-                                <!-- Show Update/Delete buttons only for the post owner -->
                                 {% if current_user.is_authenticated and post.userid == current_user.id %}
                                 <a class="btn btn-primary btn-sm" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
                                 <a class="btn btn-danger btn-sm" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>

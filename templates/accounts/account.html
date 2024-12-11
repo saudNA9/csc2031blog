@@ -18,7 +18,7 @@
                     <h4>{{ post.title }}</h4>
                     <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
                     <div class="post-body">
-                        <p>{{ post.body }}</p> <!-- Displays the full decrypted post content -->
+                        <p>{{ post.body }}</p>
                     </div>
                     <div class="post-actions">
                         <a href="{{ url_for('posts.update', id=post.id) }}">Update</a>
@@ -35,9 +35,8 @@
 {% endif %}
 
 <style>
-    /* CSS for Account Information Styling */
     .account-info {
-        background-color: #f0f0f5; /* Light grey background */
+        background-color: #f0f0f5;
         color: #333;
         padding: 1.5em;
         border-radius: 10px;
@@ -51,10 +50,10 @@
     }
 
     .account-info strong {
-        color: #007bff; /* Primary blue color for labels */
+        color: #007bff;
     }
 
-    /* CSS for Post Card Layout */
+
     .post-container {
         display: flex;
         flex-direction: column;
@@ -62,7 +61,7 @@
     }
 
     .post-card {
-        background-color: #2f2f2f; /* Dark background color */
+        background-color: #2f2f2f;
         color: white;
         padding: 1em;
         border-radius: 8px;
@@ -77,11 +76,11 @@
     .post-card small {
         display: block;
         margin-top: 0.5em;
-        color: #ccc; /* Lighter color for date */
+        color: #ccc;
     }
 
     .post-body {
-        background-color: #f5f5f5; /* Light background for content */
+        background-color: #f5f5f5;
         color: black;
         padding: 0.5em;
         border-radius: 4px;
@@ -93,7 +92,7 @@
     }
 
     .post-actions a {
-        color: #007bff; /* Link color for Update */
+        color: #007bff;
         text-decoration: none;
         margin-right: 1em;
     }

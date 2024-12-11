@@ -15,12 +15,10 @@
         <li>If scanning a QR code, scan the QR code below. If manually entering the key, use the MFA Key provided.</li>
     </ol>
 
-    <!-- Display the MFA key -->
     <div class="alert alert-success text-center">
         <strong>Your MFA Key:</strong> {{ mfa_key }}
     </div>
 
-    <!-- Display the base64-encoded QR code image if provided -->
     {% if mfa_qr_uri %}
     <div class="text-center">
         <p>Or scan this QR code:</p>
@@ -28,7 +26,6 @@
     </div>
     {% endif %}
 
-    <!-- Login button -->
     <div class="text-center mt-4">
         <a href="{{ url_for('accounts.login') }}" class="btn btn-success">Go to Login</a>
     </div>

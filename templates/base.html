@@ -22,30 +22,26 @@
 
         {% if current_user.is_authenticated %}
             {% if current_user.role == 'db_admin' %}
-                <!-- Navigation for db_admin -->
                 <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
                 <a class="nav-item nav-link" href="{{ url_for('admin.index', _scheme='https', _external=True) }}">DB Admin</a>
                 <a class="nav-item nav-link" href="{{ url_for('accounts.logout') }}">Logout</a>
             {% elif current_user.role == 'sec_admin' %}
-                <!-- Navigation for sec_admin -->
                 <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
                 <a class="nav-item nav-link" href="{{ url_for('security.security') }}">Security</a>
                 <a class="nav-item nav-link" href="{{ url_for('accounts.logout') }}">Logout</a>
             {% else %}
-                <!-- Navigation for regular authenticated users -->
                 <a class="nav-item nav-link" href="{{ url_for('accounts.account') }}">Account</a>
                 <a class="nav-item nav-link" href="{{ url_for('posts.posts') }}">View Posts</a>
                 <a class="nav-item nav-link" href="{{ url_for('posts.create') }}">Create Post</a>
                 <a class="nav-item nav-link" href="{{ url_for('accounts.logout') }}">Logout</a>
             {% endif %}
         {% else %}
-            <!-- Navigation for anonymous users -->
             <a class="nav-item nav-link" href="{{ url_for('accounts.registration') }}">Registration</a>
             <a class="nav-item nav-link" href="{{ url_for('accounts.login') }}">Login</a>
         {% endif %}
     </nav>
 
-    <!-- Flash Messages Section -->
+    <!-- Here are the flash Messages I added and noted in my README.md -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="container mt-4">
@@ -65,7 +61,6 @@
 
     <div class="container-fluid p-3 my-5 text-center">
         {% block content %}
-            <!-- The content of any template extending the base template will be embedded in this block -->
         {% endblock %}
     </div>
 </section>
