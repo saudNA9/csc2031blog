@@ -67,23 +67,28 @@ def firewall_error():
 @app.errorhandler(429)
 def ratelimit_error(e):
     return render_template('errors/rate_limit.html'), 429
+
 # I have added this error handling function for bad_request_error
 @app.errorhandler(400)
 def bad_request_error(e):
     return render_template('errors/400.html'), 400
+
 # As for this it handles function for not_found_error
 @app.errorhandler(404)
 def not_found_error(e):
     return render_template('errors/404.html'), 404
+
 # I have added this error handling function for internal_server_error
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('errors/500.html'), 500
+
 # Finally added this error handling function for not_implemented_error
 @app.errorhandler(501)
 def not_implemented_error(e):
     return render_template('errors/501.html'), 501
 
+# To avoid overriding concerns, I intentionally combined the restrict access and waf function in a single function.
 @app.before_request
 def restrict_access_and_waf_function_name():
     excluded_routes = ['firewall_error', 'static', 'accounts.mfa_setup']
