@@ -2,8 +2,8 @@ from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Regexp, Email
 import re
-import email_validator
 
+# I have added this to custom password validator to enforce password strength rules.
 def strong_password(form, field):
     password = field.data
     errors = []
@@ -40,7 +40,7 @@ class RegistrationForm(FlaskForm):
                message="Enter a valid UK landline phone number (e.g., 011X-YYYYYYY).")
     ])
 
-
+    # I have added a strong password validator to the password field
     password = PasswordField('Password', validators=[DataRequired(), strong_password])
 
     confirm_password = PasswordField('Confirm Password',
@@ -56,5 +56,6 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class MFACodeForm(FlaskForm):
+#I made this to ask the user to input their MFA PIN from their authenticator app.
     mfa_pin = StringField('Enter MFA PIN', validators=[DataRequired()])
     submit = SubmitField('Submit MFA PIN')
