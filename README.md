@@ -21,7 +21,7 @@
 - I created a custom error page to handle rate limit breaches effectively.
 
 ## **Exercise 11: Multi-Factor Authentication (MFA)**
-- I introduced MFA during registration, allowing users to set up manual code entry.
+- I introduced MFA during registration, allowing users to set up manual code entry and I added a QR Code as required in part 2.
 - MFA verification was added to the login process, with users redirected to an MFA setup page if required.
 
 ## **Exercise 12: Managing User Logins**
@@ -35,15 +35,15 @@
   - Authenticated users cannot access registration or login pages or modify others' posts.
 
 ### **Note**
-- When pressing **Login** or **Registration** while logged in, the user is redirected based on their role instead of being redirected to **View Posts** as required. This decision avoids access issues since `sec_admin` and `db_admin` roles should not access **View Posts**.
+- When pressing **Login** or **Registration** while logged in, the user is redirected based on their role instead of being redirected to **View Posts** as required. I made this to avoid access issues since `sec_admin` and `db_admin` roles should not access **View Posts**.
 
 ## **Exercise 14: Role-Based Access Control**
 - I added roles (`end_user`, `db_admin`, `sec_admin`) to the `User` model.
 - Each role has specific permissions, such as:
-  - `end_user`: Limited to posts.
-  - `db_admin`: Access to database tables.
+  - `end_user`: Access to posts.
+  - `db_admin`: Access to database panel.
   - `sec_admin`: Access to the security page.
-- **Approach**: I embedded role-checking logic directly into view functions instead of using a `@roles_required` decorator. This ensured:
+- **Approach**: I embedded role-checking logic directly into view functions since I am familiar with it instead of using a `@roles_required` decorator as shown in Lectures. This ensured:
   - Adherence to the exercise requirements by extending existing code.
   - Simplicity for debugging and step-by-step verification.
   - Flexibility for future scalability and refactoring.
@@ -79,17 +79,15 @@
 ## **Exercise 21: Firewall Rules**
 - To enhance security, I implemented rules to block:
   - SQL injection (`union`, `select`, etc.).
-  - XSS (`<script>`, `<iframe>`).
-  - Path traversal (`../`).
+  - XSS (`<script>`, `<iframe>`, etc.).
+  - Path traversal (`%2e%2e%2f`,`..%2f
+`, etc.).
 - Users attempting such actions are redirected to a custom firewall error page.
 
 ## **Exercise 22: Data Transmission**
 - I enabled secure HTTPS using a self-signed certificate.
-- Updated all links and redirects to ensure secure communication.
+- I have Updated the links and redirects to ensure secure communication.
 
 ## **Exercise 23: Security Headers**
 - Using Flask-Talisman, I added HTTP security headers to enhance security.
 - I switched to Bootstrap 5.2.2 to ensure compatibility with CSP while maintaining styling.
-
-### **Note**
-- Duplicate flash messages may appear because I added a flash message handler in `base.html`. This was necessary as some flash messages written in the `.py` files using Flask's `flash()` method were not appearing in the templates. Despite trying multiple approaches, this was the most reliable solution to ensure all messages are displayed.
