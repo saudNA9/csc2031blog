@@ -3,174 +3,175 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
-        <h1>Registration</h1>
-        <div class="p-2 row">
-            <div class="col-3"></div>
-            <div class="col-6">
-                <div>
-                    <p>Please complete the following form to register an account to use the CSC2031 Blog.</p>
-                </div>
+<div class="container">
+    <h1>Registration</h1>
+    <div class="p-2 row">
+        <div class="col-3"></div>
+        <div class="col-6">
+            <div>
+                <p>Please complete the following form to register an account to use the CSC2031 Blog.</p>
+            </div>
 
-                <form method="POST">
-                    <div class="p-2 bg-light border border-primary">
-                        <div style="text-align: left">
-                            {{ form.csrf_token() }}
-                            <div>
-                                {% with messages = get_flashed_messages(with_categories=true) %}
+            <form method="POST">
+                <div class="p-2 bg-light border border-primary">
+                    <div style="text-align: left">
+                        {{ form.csrf_token() }}
+                        <div>
+                            {% with messages = get_flashed_messages(with_categories=true) %}
                                 {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
-                                    {{ message }}.
-                                    <a href="{{ url_for('accounts.login') }}" class="btn btn-success">Go to Login</a>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
+                                    {% if message != "Attack detected: SQL Injection" %}
+                                        <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+                                            {{ message }}
+                                            <a href="{{ url_for('accounts.login') }}" class="btn btn-success">Go to Login</a>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="delete_flash(this)">
+                                                <span>&times;</span>
+                                            </button>
+                                        </div>
+                                    {% endif %}
                                 {% endfor %}
-                                {% endwith %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.email.label }}<span style="color: red">*</span>
-                                {{ form.email(class="form-control", oninput="validateEmail()") }}
-                                <small id="email-error" class="text-danger"></small>
-                                {% for error in form.email.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.firstname.label }}<span style="color: red">*</span>
-                                {{ form.firstname(class="form-control", oninput="validateName('firstname', 'firstname-error')") }}
-                                <small id="firstname-error" class="text-danger"></small>
-                                {% for error in form.firstname.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.lastname.label }}<span style="color: red">*</span>
-                                {{ form.lastname(class="form-control", oninput="validateName('lastname', 'lastname-error')") }}
-                                <small id="lastname-error" class="text-danger"></small>
-                                {% for error in form.lastname.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.phone.label }}<span style="color: red">*</span>
-                                {{ form.phone(class="form-control", oninput="validatePhone()") }}
-                                <small id="phone-error" class="text-danger"></small>
-                                {% for error in form.phone.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.password.label }}<span style="color: red">*</span>
-                                {{ form.password(class="form-control", id="password", oninput="checkPasswordStrength()") }}
-                                <ul id="password-requirements" class="mt-2">
-                                    <li id="length-requirement" class="text-danger">Password must be between 8 and 15 characters</li>
-                                    <li id="uppercase-requirement" class="text-danger">Contain at least 1 uppercase letter</li>
-                                    <li id="lowercase-requirement" class="text-danger">Contain at least 1 lowercase letter</li>
-                                    <li id="digit-requirement" class="text-danger">Contain at least 1 digit</li>
-                                    <li id="specialchar-requirement" class="text-danger">Contain at least 1 special character</li>
-                                </ul>
-                                {% for error in form.password.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form.confirm_password.label }}<span style="color: red">*</span>
-                                {{ form.confirm_password(class="form-control") }}
-                                {% for error in form.confirm_password.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                            {% endwith %}
                         </div>
 
-                        <div>
-                            {{ form.submit(class="btn btn-success") }}
+                        <div class="form-group">
+                            {{ form.email.label }}<span style="color: red">*</span>
+                            {{ form.email(class="form-control", oninput="validateEmail()") }}
+                            <small id="email-error" class="text-danger"></small>
+                            {% for error in form.email.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.firstname.label }}<span style="color: red">*</span>
+                            {{ form.firstname(class="form-control", oninput="validateName('firstname', 'firstname-error')") }}
+                            <small id="firstname-error" class="text-danger"></small>
+                            {% for error in form.firstname.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.lastname.label }}<span style="color: red">*</span>
+                            {{ form.lastname(class="form-control", oninput="validateName('lastname', 'lastname-error')") }}
+                            <small id="lastname-error" class="text-danger"></small>
+                            {% for error in form.lastname.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.phone.label }}<span style="color: red">*</span>
+                            {{ form.phone(class="form-control", oninput="validatePhone()") }}
+                            <small id="phone-error" class="text-danger"></small>
+                            {% for error in form.phone.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.password.label }}<span style="color: red">*</span>
+                            {{ form.password(class="form-control", id="password", oninput="checkPasswordStrength()") }}
+                            <ul id="password-requirements" class="mt-2">
+                                <li id="length-requirement" class="text-danger">Password must be between 8 and 15 characters</li>
+                                <li id="uppercase-requirement" class="text-danger">Contain at least 1 uppercase letter</li>
+                                <li id="lowercase-requirement" class="text-danger">Contain at least 1 lowercase letter</li>
+                                <li id="digit-requirement" class="text-danger">Contain at least 1 digit</li>
+                                <li id="specialchar-requirement" class="text-danger">Contain at least 1 special character</li>
+                            </ul>
+                            {% for error in form.password.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.confirm_password.label }}<span style="color: red">*</span>
+                            {{ form.confirm_password(class="form-control") }}
+                            {% for error in form.confirm_password.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
                         </div>
                     </div>
-                </form>
 
-            </div>
-            <div class="col-3"></div>
+                    <div>
+                        {{ formI.submit(class="btn btn-success") }}
+                    </div>
+                </div>
+            </form>
+
         </div>
-
+        <div class="col-3"></div>
     </div>
+</div>
 
-    <script>
-        function validateEmail() {
-            const email = document.querySelector('input[name="email"]').value;
-            const emailError = document.getElementById('email-error');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            emailError.textContent = emailRegex.test(email) ? '' : 'Enter a valid email address.';
+<script>
+    function validateEmail() {
+        const email = document.querySelector('input[name="email"]').value;
+        const emailError = document.getElementById('email-error');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        emailError.textContent = emailRegex.test(email) ? '' : 'Enter a valid email address.';
+    }
+
+    function validateName(fieldName, errorId) {
+        const name = document.querySelector(`input[name="${fieldName}"]`).value;
+        const nameError = document.getElementById(errorId);
+        const nameRegex = /^[A-Za-z\-]+$/;
+        nameError.textContent = nameRegex.test(name) ? '' : 'Name can only contain letters and hyphens.';
+    }
+
+    function validatePhone() {
+        const phone = document.querySelector('input[name="phone"]').value;
+        const phoneError = document.getElementById('phone-error');
+        const phoneRegex = /^(02\d-\d{8}|011\d-\d{7}|01\d{3}-\d{5,6})$/;
+        phoneError.textContent = phoneRegex.test(phone) ? '' : 'Enter a valid UK landline number with a hyphen.';
+    }
+
+    function checkPasswordStrength() {
+        const password = document.getElementById("password").value;
+        const lengthRequirement = document.getElementById("length-requirement");
+        const upperCaseRequirement = document.getElementById("uppercase-requirement");
+        const lowerCaseRequirement = document.getElementById("lowercase-requirement");
+        const digitRequirement = document.getElementById("digit-requirement");
+        const specialCharRequirement = document.getElementById("specialchar-requirement");
+
+        if (password.length >= 8 && password.length <= 15) {
+            lengthRequirement.classList.add("text-success");
+            lengthRequirement.classList.remove("text-danger");
+        } else {
+            lengthRequirement.classList.add("text-danger");
+            lengthRequirement.classList.remove("text-success");
         }
 
-        function validateName(fieldName, errorId) {
-            const name = document.querySelector(`input[name="${fieldName}"]`).value;
-            const nameError = document.getElementById(errorId);
-            const nameRegex = /^[A-Za-z\-]+$/;
-            nameError.textContent = nameRegex.test(name) ? '' : 'Name can only contain letters and hyphens.';
+        if (/[A-Z]/.test(password)) {
+            upperCaseRequirement.classList.add("text-success");
+            upperCaseRequirement.classList.remove("text-danger");
+        } else {
+            upperCaseRequirement.classList.add("text-danger");
+            upperCaseRequirement.classList.remove("text-success");
         }
 
-        function validatePhone() {
-            const phone = document.querySelector('input[name="phone"]').value;
-            const phoneError = document.getElementById('phone-error');
-            const phoneRegex = /^(02\d-\d{8}|011\d-\d{7}|01\d{3}-\d{5,6})$/;
-            phoneError.textContent = phoneRegex.test(phone) ? '' : 'Enter a valid UK landline number with a hyphen.';
+        if (/[a-z]/.test(password)) {
+            lowerCaseRequirement.classList.add("text-success");
+            lowerCaseRequirement.classList.remove("text-danger");
+        } else {
+            lowerCaseRequirement.classList.add("text-danger");
+            lowerCaseRequirement.classList.remove("text-success");
         }
 
-        function checkPasswordStrength() {
-            const password = document.getElementById("password").value;
-            const lengthRequirement = document.getElementById("length-requirement");
-            const upperCaseRequirement = document.getElementById("uppercase-requirement");
-            const lowerCaseRequirement = document.getElementById("lowercase-requirement");
-            const digitRequirement = document.getElementById("digit-requirement");
-            const specialCharRequirement = document.getElementById("specialchar-requirement");
-
-            if (password.length >= 8 && password.length <= 15) {
-                lengthRequirement.classList.add("text-success");
-                lengthRequirement.classList.remove("text-danger");
-            } else {
-                lengthRequirement.classList.add("text-danger");
-                lengthRequirement.classList.remove("text-success");
-            }
-
-            if (/[A-Z]/.test(password)) {
-                upperCaseRequirement.classList.add("text-success");
-                upperCaseRequirement.classList.remove("text-danger");
-            } else {
-                upperCaseRequirement.classList.add("text-danger");
-                upperCaseRequirement.classList.remove("text-success");
-            }
-
-            if (/[a-z]/.test(password)) {
-                lowerCaseRequirement.classList.add("text-success");
-                lowerCaseRequirement.classList.remove("text-danger");
-            } else {
-                lowerCaseRequirement.classList.add("text-danger");
-                lowerCaseRequirement.classList.remove("text-success");
-            }
-
-            if (/\d/.test(password)) {
-                digitRequirement.classList.add("text-success");
-                digitRequirement.classList.remove("text-danger");
-            } else {
-                digitRequirement.classList.add("text-danger");
-                digitRequirement.classList.remove("text-success");
-            }
-
-            if (/[^\w\s]/.test(password)) {
-                specialCharRequirement.classList.add("text-success");
-                specialCharRequirement.classList.remove("text-danger");
-            } else {
-                specialCharRequirement.classList.add("text-danger");
-                specialCharRequirement.classList.remove("text-success");
-            }
+        if (/\d/.test(password)) {
+            digitRequirement.classList.add("text-success");
+            digitRequirement.classList.remove("text-danger");
+        } else {
+            digitRequirement.classList.add("text-danger");
+            digitRequirement.classList.remove("text-success");
         }
-    </script>
+
+        if (/[^\w\s]/.test(password)) {
+            specialCharRequirement.classList.add("text-success");
+            specialCharRequirement.classList.remove("text-danger");
+        } else {
+            specialCharRequirement.classList.add("text-danger");
+            specialCharRequirement.classList.remove("text-success");
+        }
+    }
+</script>
 {% endblock %}
