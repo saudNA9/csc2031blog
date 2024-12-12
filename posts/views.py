@@ -65,7 +65,8 @@ def create():
 def update(id):
     post_to_update = Post.query.filter_by(id=id).first()
     if not post_to_update or post_to_update.userid != current_user.id:
-        abort(403)
+        flash("You are not authorized to update this post.", "danger")
+        return redirect(url_for('posts.posts'))
 
     form = PostForm()
     if form.validate_on_submit():
@@ -74,9 +75,8 @@ def update(id):
         db.session.commit()
         security_logger.info(
             f"Post update: Email={current_user.email}, Role={current_user.role}, PostID={post_to_update.id}, AuthorEmail={post_to_update.user.email}, IP={request.remote_addr}")
-        flash('Post updated', category='success')
+        flash('Post updated successfully.', "success")
         return redirect(url_for('posts.posts'))
-
 
     encryption_key = Post.derive_key(current_user.salt)
     form.title.data = Post.decrypt(post_to_update.title_encrypted, encryption_key)
@@ -90,7 +90,8 @@ def delete(id):
     post_to_delete = Post.query.filter_by(id=id).first()
 
     if not post_to_delete or post_to_delete.userid != current_user.id:
-        abort(403)
+        flash("You are not authorized to delete this post.", "danger")
+        return redirect(url_for('posts.posts'))
 
     db.session.delete(post_to_delete)
     db.session.commit()
