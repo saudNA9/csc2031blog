@@ -1,21 +1,8 @@
 <!-- This is the security.html file, displaying user account security information and login logs. -->
+<!-- I included two sections: one for account details and login history, and another for recent security-related activities, parsed into timestamps and messages. -->
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div class="container mt-4">
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
-
 <!-- Security Information Section -->
 <h2 class="mb-4 text-center">Security</h2>
 <table class="table table-striped table-bordered">
@@ -47,7 +34,6 @@
     </tbody>
 </table>
 
-<!-- Recent Security Log Entries Section -->
 <h3 class="mb-4 text-center">Recent Security Log Entries</h3>
 <table class="table table-striped table-bordered">
     <thead class="table-dark">

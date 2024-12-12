@@ -1,5 +1,5 @@
 <!-- This is the base.html template, serving as the main layout for the entire web application. -->
-<!-- I did create a responsive navigation menu with role-based access control. -->
+<!-- I created a responsive navigation menu with role-based access control and added centralized flash messaging functionality. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,6 +43,23 @@
         {% endif %}
     </nav>
 
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                        <div class="me-auto">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm ms-2" data-bs-dismiss="alert" aria-label="Close">
+                            ✖
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <div class="container-fluid p-3 my-5 text-center">
         {% block content %}
