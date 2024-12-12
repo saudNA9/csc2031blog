@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, session, request, make_response
+from flask import Blueprint, render_template, flash, redirect, url_for, session, request
 from accounts.forms import RegistrationForm, LoginForm
 from config import User, db, Post, limiter, security_logger
 import pyotp
