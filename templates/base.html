@@ -43,23 +43,6 @@
         {% endif %}
     </nav>
 
-    <!-- Here are the flash Messages I added and noted in my README.md -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container mt-4">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show d-flex align-items-center" role="alert">
-                        <div class="me-auto">
-                            {{ message }}
-                        </div>
-                        <button type="button" class="btn btn-outline-danger btn-sm ms-2" data-bs-dismiss="alert" aria-label="Close">
-                            ✖
-                        </button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
 
     <div class="container-fluid p-3 my-5 text-center">
         {% block content %}
