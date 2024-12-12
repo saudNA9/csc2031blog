@@ -50,7 +50,7 @@ def registration():
 
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first():
-            flash('Email already exists', category="danger")
+            flash('Email already exists!', category="danger")
             return render_template('accounts/registration.html', form=form)
 
         # I added this to generate an MFA key and QR code URI
