@@ -165,20 +165,7 @@ class Log(db.Model):
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
-        if not current_user.is_authenticated or current_user.role != 'db_admin':
-            abort(403)
         return super().index()
-
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.role == 'db_admin'
-
-    def inaccessible_callback(self, name, **kwargs):
-        # If the user is authenticated but not authorized, it will show 403(Forbidden)
-        if current_user.is_authenticated:
-            abort(403)
-        # If the user is not authenticated, it will redirect to login page
-        flash("You must be logged in to access this page.", "danger")
-        return redirect(url_for('accounts.login'))
 
 class PostView(ModelView):
     column_list = ('id', 'userid', 'created', 'title_encrypted', 'body_encrypted')

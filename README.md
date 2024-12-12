@@ -67,7 +67,7 @@
   - Valid UK landline phone numbers with specific formats.
 
 ## **Exercise 19: Hardcoded Data**
-- All configuration settings were moved to a `.env` file, including secret key generation.
+- What I did here is that I have moved all configuration settings to a `.env` file, including secret key generation.
 
 ## **Exercise 20: Handling Errors**
 - I added user-friendly error pages for:
